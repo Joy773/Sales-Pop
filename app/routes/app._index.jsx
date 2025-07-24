@@ -106,7 +106,7 @@ export default function Index() {
 
   return (
     <Page>
-      <TitleBar title="Dashboard">
+      <TitleBar title="Staging">
         <button variant="primary" onClick={generateProduct}>
           Generate a product
         </button>

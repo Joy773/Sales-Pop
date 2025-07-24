@@ -1,0 +1,23 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "e8732b97dcf19af3c1605c2d7b2274d9"
+name = "salespop-staging"
+handle = "salespop-staging"
+application_url = "https://salespop-1.onrender.com"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2025-07"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = ["https://salespop-1.onrender.com/auth/callback", "https://salespop-1.onrender.com/auth/shopify/callback", "https://salespop-1.onrender.com/api/auth/callback"]
+
+[pos]
+embedded = false
