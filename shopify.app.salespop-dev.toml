@@ -3,11 +3,12 @@
 client_id = "fe3d83bbefd509c6adef71fe0b674dc1"
 name = "salespop-dev"
 handle = "salespop-dev-1"
-application_url = "https://salespop-1.onrender.com"
+application_url = "https://fails-cornwall-respond-post.trycloudflare.com"
 embedded = true
 
 [build]
 include_config_on_deploy = true
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2025-07"
@@ -17,7 +18,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://salespop-1.onrender.com/auth/callback", "https://salespop-1.onrender.com/auth/shopify/callback", "https://salespop-1.onrender.com/api/auth/callback"]
+redirect_urls = ["https://fails-cornwall-respond-post.trycloudflare.com/auth/callback", "https://fails-cornwall-respond-post.trycloudflare.com/auth/shopify/callback", "https://fails-cornwall-respond-post.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
