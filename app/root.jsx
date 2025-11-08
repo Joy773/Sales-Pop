@@ -19,6 +19,18 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <style>{`
+          @keyframes slideUp {
+            from {
+              transform: translateX(100px);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+        `}</style>
       </head>
       <body>
         <Outlet />

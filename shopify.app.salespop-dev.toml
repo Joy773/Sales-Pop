@@ -13,12 +13,21 @@ automatically_update_urls_on_dev = true
 [webhooks]
 api_version = "2025-07"
 
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/orders/create"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_products,read_orders,write_app_proxy"
 
 [auth]
 redirect_urls = ["https://fails-cornwall-respond-post.trycloudflare.com/auth/callback", "https://fails-cornwall-respond-post.trycloudflare.com/auth/shopify/callback", "https://fails-cornwall-respond-post.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
+
+[app_proxy]
+url = "/apps/sales-pop"
+prefix = "apps"
+subpath = "sales-pop"

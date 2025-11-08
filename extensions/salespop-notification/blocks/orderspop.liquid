@@ -1,0 +1,175 @@
+{% comment %}
+  Sales Pop Notification App Block
+  This block displays recent sales notifications on the storefront.
+{% endcomment %}
+
+<meta name="shop" content="{{ shop.permanent_domain }}">
+{%- comment -%}
+  Get app URL from app metafields or environment variable
+  For app-embed, we need to pass the app URL to the frontend
+{%- endcomment -%}
+<script>
+  window.SalesPopShop = "{{ shop.permanent_domain }}";
+  // Set app URL - you can set this via metafields or manually
+  // For development, you might need to update this manually
+  {%- if shop.metafields.app_salespop.app_url -%}
+    window.SalesPopAppUrl = "{{ shop.metafields.app_salespop.app_url }}";
+  {%- else -%}
+    // Cloudflare tunnel URL for development
+    // Update this when your tunnel URL changes (restart shopify app dev)
+    window.SalesPopAppUrl = "https://implement-frozen-description-loc.trycloudflare.com";
+  {%- endif -%}
+  console.log('Sales Pop: Shop domain =', window.SalesPopShop);
+  console.log('Sales Pop: App URL =', window.SalesPopAppUrl);
+</script>
+<meta name="salespop-app-url" content="https://implement-frozen-description-loc.trycloudflare.com">
+
+<div id="salespop-notification-container" style="display: none;">
+  <div class="salespop-popup">
+    <div class="salespop-content">
+      <div class="salespop-product-image">
+        <img src="{{ 'green-t-shirt.jpg' | asset_url }}" alt="Product" id="salespop-img" />
+      </div>
+      <div class="salespop-info">
+        <div class="salespop-text" id="salespop-text">Federico from Turin, Italy</div>
+        <div class="salespop-link" id="salespop-link">T-Shirt</div>
+        <div class="salespop-time">just now</div>
+      </div>
+      <button class="salespop-close" id="salespop-close" aria-label="Close notification" style="display: none;">
+        ×
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .salespop-popup {
+    position: fixed;
+    background-color: #fff8e6;
+    border: 1px solid #e1e3e5;
+    border-radius: 8px;
+    padding: 12px;
+    max-width: 400px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    transition: all 0.3s ease-in-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  .salespop-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    padding-right: 40px;
+  }
+  
+  .salespop-product-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  
+  .salespop-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .salespop-info {
+    flex: 1;
+  }
+  
+  .salespop-text {
+    font-size: 15px;
+    font-weight: bold;
+    color: #000000;
+    line-height: 1.4;
+    display: block;
+  }
+  
+  .salespop-link {
+    font-size: 15px;
+    font-weight: bold;
+    color: #000000;
+    cursor: pointer;
+    display: block;
+    margin-top: 2px;
+  }
+  
+  .salespop-time {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+  
+  .salespop-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s ease;
+    z-index: 1;
+  }
+  
+  .salespop-close:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+    .salespop-popup {
+      max-width: 300px;
+    }
+  }
+</style>
+
+<script src="{{ 'salespop.js' | asset_url }}" onerror="console.error('Sales Pop: Failed to load script from asset_url')"></script>
+{%- comment -%}
+  Fallback: Load script from app URL if asset_url doesn't work
+  Wait a bit to see if the script loaded, then try app URL
+{%- endcomment -%}
+<script>
+  // Check if script loaded after a short delay
+  setTimeout(function() {
+    // Check if the script initialized (look for console logs or check for container)
+    const container = document.getElementById('salespop-notification-container');
+    if (!container) {
+      console.warn('Sales Pop: Container not found, script may not have loaded');
+    }
+    // Try loading from app URL as fallback
+    if (window.SalesPopAppUrl && !window.SalesPopInitialized) {
+      console.warn('Sales Pop: Script may not have loaded via asset_url, trying app URL...');
+      const script = document.createElement('script');
+      script.src = window.SalesPopAppUrl + '/extensions/salespop-notification/assets/salespop.js';
+      script.onerror = function() {
+        console.error('Sales Pop: Failed to load script from app URL:', script.src);
+      };
+      script.onload = function() {
+        console.log('Sales Pop: Script loaded from app URL');
+      };
+      document.head.appendChild(script);
+    }
+  }, 500);
+</script>
+
+{% schema %}
+{
+  "name": "Sales Pop Notification",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}

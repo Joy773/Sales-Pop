@@ -1,0 +1,9 @@
+# Learn more about configuring Shopify Theme App Extensions at https://shopify.dev/docs/apps/online-store/theme-app-extensions
+
+name = "salespop-notification"
+uid = "710d1091-5f27-d703-1029-00652061a462d347b721"
+type = "theme"
+
+[[extension_points]]
+target = "theme/app-extension"
+export = "app-embed"

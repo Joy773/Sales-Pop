@@ -1,40 +1,44 @@
 import { Card, Text, BlockStack, Box, RadioButton, TextField, Divider, Checkbox, RangeSlider, Select } from "@shopify/polaris";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-export function TabsSection({ onStylesChange }) {
+export function TabsSection({ onStylesChange, onReset, initialStyles }) {
   const [selectedTab, setSelectedTab] = useState("settings");
-  const [selectedOrderType, setSelectedOrderType] = useState("realtime");
-  const [lookbackDays, setLookbackDays] = useState("30");
-  const [popupInterval, setPopupInterval] = useState("1");
-  const [popupDuration, setPopupDuration] = useState("10");
-  const [messageTemplate, setMessageTemplate] = useState("{CUSTOMER} from {LOCATION} bought {PRODUCT}");
+  const [selectedOrderType, setSelectedOrderType] = useState(initialStyles?.selectedOrderType || "realtime");
+  const [lookbackDays, setLookbackDays] = useState(initialStyles?.lookbackDays || "30");
+  const [popupInterval, setPopupInterval] = useState(initialStyles?.popupInterval || "1");
+  const [popupDuration, setPopupDuration] = useState(initialStyles?.popupDuration || "10");
+  const [messageTemplate, setMessageTemplate] = useState(initialStyles?.messageTemplate || "{CUSTOMER} from {LOCATION} bought {PRODUCT}");
   
   // Box Style states
-  const [backgroundColor, setBackgroundColor] = useState("#fff8e6");
-  const [borderColor, setBorderColor] = useState("#e1e3e5");
-  const [hoverColor, setHoverColor] = useState("#ffffff");
-  const [borderWidth, setBorderWidth] = useState(1);
-  const [borderRadius, setBorderRadius] = useState(8);
-  const [useBackgroundImage, setUseBackgroundImage] = useState(false);
-  const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState(initialStyles?.backgroundColor || "#fff8e6");
+  const [borderColor, setBorderColor] = useState(initialStyles?.borderColor || "#e1e3e5");
+  const [hoverColor, setHoverColor] = useState(initialStyles?.hoverColor || "#ffffff");
+  const [borderWidth, setBorderWidth] = useState(initialStyles?.borderWidth || 1);
+  const [borderRadius, setBorderRadius] = useState(initialStyles?.borderRadius || 8);
+  const [useBackgroundImage, setUseBackgroundImage] = useState(initialStyles?.useBackgroundImage || false);
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState(initialStyles?.backgroundImageUrl || "");
+
+  // Add hideOnMobile state for the checkbox
+  const [hideOnMobile, setHideOnMobile] = useState(initialStyles?.hideOnMobile || false);
+  const [showCloseButton, setShowCloseButton] = useState(initialStyles?.showCloseButton || false);
 
   // Font Style states
-  const [textSize, setTextSize] = useState(15);
-  const [textWeight, setTextWeight] = useState("bold");
-  const [textColor, setTextColor] = useState("#000000");
-  const [linkSize, setLinkSize] = useState(15);
-  const [linkWeight, setLinkWeight] = useState("bold");
-  const [linkColor, setLinkColor] = useState("#000000");
+  const [textSize, setTextSize] = useState(initialStyles?.textSize || 15);
+  const [textWeight, setTextWeight] = useState(initialStyles?.textWeight || "bold");
+  const [textColor, setTextColor] = useState(initialStyles?.textColor || "#000000");
+  const [linkSize, setLinkSize] = useState(initialStyles?.linkSize || 15);
+  const [linkWeight, setLinkWeight] = useState(initialStyles?.linkWeight || "bold");
+  const [linkColor, setLinkColor] = useState(initialStyles?.linkColor || "#000000");
 
   // Image Style states
-  const [imageSize, setImageSize] = useState(48);
-  const [imageRadius, setImageRadius] = useState(8);
+  const [imageSize, setImageSize] = useState(initialStyles?.imageSize || 48);
+  const [imageRadius, setImageRadius] = useState(initialStyles?.imageRadius || 8);
 
   // Position states
-  const [xPosition, setXPosition] = useState("right");
-  const [yPosition, setYPosition] = useState("bottom");
-  const [xOffset, setXOffset] = useState("20");
-  const [yOffset, setYOffset] = useState("20");
+  const [xPosition, setXPosition] = useState(initialStyles?.xPosition || "right");
+  const [yPosition, setYPosition] = useState(initialStyles?.yPosition || "bottom");
+  const [xOffset, setXOffset] = useState(initialStyles?.xOffset || "20");
+  const [yOffset, setYOffset] = useState(initialStyles?.yOffset || "20");
 
   const positionOptions = {
     x: [
@@ -407,6 +411,25 @@ export function TabsSection({ onStylesChange }) {
             </BlockStack>
           </BlockStack>
         </Box>
+        <Divider/>
+
+        {/* Hide on Mobile Block */}
+        <Box paddingInlineStart="400" paddingInlineEnd="400">
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingMd">Extras</Text>
+            <Checkbox
+              label="Show close button"
+              helpText="Clicking on the input field for this will add a close button to the notification pop-up"
+              checked={showCloseButton}
+              onChange={setShowCloseButton}
+            />
+            <Checkbox
+              label="Hide on mobile"
+              checked={hideOnMobile}
+              onChange={setHideOnMobile}
+            />
+          </BlockStack>
+        </Box>
       </BlockStack>
     );
   };
@@ -499,9 +522,62 @@ export function TabsSection({ onStylesChange }) {
     }
   };
 
-  // Effect to emit style changes
+  // Reset function to restore to initialStyles (last saved values)
+  const resetToDefaults = useCallback(() => {
+    setSelectedOrderType(initialStyles?.selectedOrderType || "realtime");
+    setLookbackDays(initialStyles?.lookbackDays || "30");
+    setPopupInterval(initialStyles?.popupInterval || "1");
+    setPopupDuration(initialStyles?.popupDuration || "10");
+    setMessageTemplate(initialStyles?.messageTemplate || "{CUSTOMER} from {LOCATION} bought {PRODUCT}");
+    setBackgroundColor(initialStyles?.backgroundColor || "#fff8e6");
+    setBorderColor(initialStyles?.borderColor || "#e1e3e5");
+    setHoverColor(initialStyles?.hoverColor || "#ffffff");
+    setBorderWidth(initialStyles?.borderWidth || 1);
+    setBorderRadius(initialStyles?.borderRadius || 8);
+    setUseBackgroundImage(initialStyles?.useBackgroundImage || false);
+    setBackgroundImageUrl(initialStyles?.backgroundImageUrl || "");
+    setHideOnMobile(initialStyles?.hideOnMobile || false);
+    setShowCloseButton(initialStyles?.showCloseButton || false);
+    setTextSize(initialStyles?.textSize || 15);
+    setTextWeight(initialStyles?.textWeight || "bold");
+    setTextColor(initialStyles?.textColor || "#000000");
+    setLinkSize(initialStyles?.linkSize || 15);
+    setLinkWeight(initialStyles?.linkWeight || "bold");
+    setLinkColor(initialStyles?.linkColor || "#000000");
+    setImageSize(initialStyles?.imageSize || 48);
+    setImageRadius(initialStyles?.imageRadius || 8);
+    setXPosition(initialStyles?.xPosition || "right");
+    setYPosition(initialStyles?.yPosition || "bottom");
+    setXOffset(initialStyles?.xOffset || "20");
+    setYOffset(initialStyles?.yOffset || "20");
+  }, [initialStyles]);
+
+  // Expose reset function to parent
   useEffect(() => {
-    onStylesChange({
+    if (onReset) {
+      onReset.current = resetToDefaults;
+    }
+  }, [onReset, resetToDefaults]);
+
+  // Track if this is the first render
+  const isFirstRender = useRef(true);
+  
+  // Effect to emit style changes - only when values actually change
+  useEffect(() => {
+    // Skip first render to avoid initial trigger
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    
+    const currentStyles = {
+      // Settings
+      selectedOrderType,
+      lookbackDays,
+      popupInterval,
+      popupDuration,
+      messageTemplate,
+      // Styles
       backgroundColor,
       borderColor,
       borderWidth,
@@ -517,13 +593,24 @@ export function TabsSection({ onStylesChange }) {
       imageRadius,
       useBackgroundImage,
       backgroundImageUrl,
-      // Add position properties
       xPosition,
       yPosition,
       xOffset,
-      yOffset
-    });
+      yOffset,
+      hideOnMobile,
+      showCloseButton,
+    };
+    
+    // Always call onStylesChange when dependencies change (they only change on user input)
+    onStylesChange(currentStyles);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    // Only include state values - onStylesChange is memoized in parent and stable
+    selectedOrderType,
+    lookbackDays,
+    popupInterval,
+    popupDuration,
+    messageTemplate,
     backgroundColor,
     borderColor,
     borderWidth,
@@ -543,7 +630,8 @@ export function TabsSection({ onStylesChange }) {
     yPosition,
     xOffset,
     yOffset,
-    onStylesChange
+    hideOnMobile,
+    showCloseButton,
   ]);
 
   return (
