@@ -8,7 +8,7 @@ import { saveRecentOrders } from '../ordersRepository.server';
  */
 export async function loader({ request }) {
   try {
-    const { session, admin } = await authenticate.admin(request);
+    const { session, admin } = await authenticate.public.appProxy(request);
     const shop = session.shop;
     const normalizedShop = shop.trim().toLowerCase();
 
