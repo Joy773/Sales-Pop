@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const Savebar = ({ onSave, onDiscard, isDirty }) => {
   const handlersRef = useRef({ save: null, discard: null });
   const onSaveRef = useRef(onSave);
   const onDiscardRef = useRef(onDiscard);
+  const [fallbackVisible, setFallbackVisible] = useState(false);
 
   // Keep refs up to date
   useEffect(() => {
@@ -18,6 +19,7 @@ const Savebar = ({ onSave, onDiscard, isDirty }) => {
     const saveBar = document.getElementById('my-save-bar');
     if (!saveBar) {
       console.warn('⚠️ my-save-bar element not found');
+      setFallbackVisible(isDirty);
       // Retry after a short delay
       const timeoutId = setTimeout(() => {
         const bar = document.getElementById('my-save-bar');
@@ -25,6 +27,7 @@ const Savebar = ({ onSave, onDiscard, isDirty }) => {
           if (isDirty) {
             try {
               bar.show();
+              setFallbackVisible(false);
               console.log('✅ Savebar shown (retry)');
             } catch (e) {
               console.log('Savebar show error (retry):', e);
@@ -32,11 +35,14 @@ const Savebar = ({ onSave, onDiscard, isDirty }) => {
           } else {
             try {
               bar.hide();
+              setFallbackVisible(false);
               console.log('✅ Savebar hidden (retry)');
             } catch (e) {
               console.log('Savebar hide error (retry):', e);
             }
           }
+        } else {
+          setFallbackVisible(isDirty);
         }
       }, 100);
       return () => clearTimeout(timeoutId);
@@ -46,13 +52,16 @@ const Savebar = ({ onSave, onDiscard, isDirty }) => {
     try {
       if (isDirty) {
         saveBar.show();
+        setFallbackVisible(false);
         console.log('✅ Savebar shown');
       } else {
         saveBar.hide();
+        setFallbackVisible(false);
         console.log('✅ Savebar hidden');
       }
     } catch (e) {
       console.log('Savebar show/hide error:', e);
+      setFallbackVisible(isDirty);
     }
   }, [isDirty]);
 
@@ -157,10 +166,62 @@ const Savebar = ({ onSave, onDiscard, isDirty }) => {
   }, []);
 
   return (
-    <ui-save-bar id="my-save-bar">
-      <button variant="primary" id="save-button">Save</button>
-      <button id="discard-button">Discard</button>
-    </ui-save-bar>
+    <>
+      <ui-save-bar id="my-save-bar">
+        <button variant="primary" id="save-button">Save</button>
+        <button id="discard-button">Discard</button>
+      </ui-save-bar>
+
+      {fallbackVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '12px',
+            padding: '16px',
+            backgroundColor: '#1f2933',
+            boxShadow: '0 -4px 16px rgba(15, 23, 42, 0.2)',
+            zIndex: 9999,
+          }}
+        >
+          <button
+            type='button'
+            onClick={() => onDiscardRef.current && onDiscardRef.current()}
+            style={{
+              padding: '10px 18px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.18)',
+              backgroundColor: 'transparent',
+              color: '#ffffff',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Discard
+          </button>
+          <button
+            type='button'
+            onClick={() => onSaveRef.current && onSaveRef.current()}
+            style={{
+              padding: '10px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              background:
+                'linear-gradient(90deg, rgba(37,99,235,1) 0%, rgba(79,70,229,1) 100%)',
+              color: '#ffffff',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Save
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 

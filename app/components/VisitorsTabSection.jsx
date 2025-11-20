@@ -1,5 +1,5 @@
 import { Card, Text, BlockStack, Box, Divider, Checkbox, Select, TextField } from "@shopify/polaris";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings }) {
   const [selectedTab, setSelectedTab] = useState("settings");
@@ -18,10 +18,12 @@ export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings 
   const [popupDuration, setPopupDuration] = useState(initialSettings?.popupDuration || "10");
   const [delayBeforeFirstPop, setDelayBeforeFirstPop] = useState(initialSettings?.delayBeforeFirstPop || "8");
 
-  const handlePositionSelectChange = useCallback(
-    (value) => setPositionValue(value),
-    []
-  );
+  const handlePositionSelectChange = useCallback((value) => {
+    setPositionValue(value);
+    const [vertical, horizontal] = (value || '').split(' ');
+    setVerticalPosition(vertical || 'top');
+    setHorizontalPosition(horizontal || 'left');
+  }, []);
 
   const positionSelectOptions = [
     { label: 'Top left', value: 'top left' },
@@ -30,10 +32,10 @@ export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings 
     { label: 'Bottom right', value: 'bottom right' },
   ];
 
-  const handleSelectChange = useCallback(
-    (value) => setPositionSelect(value),
-    []
-  );
+  const handleSelectChange = useCallback((value) => {
+    setPositionSelect(value);
+    setDisplayOnPage(value);
+  }, []);
 
   const positionOptions = [
     { label: 'Homepage', value: 'homepage' },
@@ -600,8 +602,8 @@ export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings 
     setExcludedPages(initialSettings?.excludedPages || "");
     setVerticalPosition(initialSettings?.verticalPosition || "top");
     setHorizontalPosition(initialSettings?.horizontalPosition || "left");
-    setPositionSelect(initialSettings?.positionSelect || "today");
-    setPositionValue(initialSettings?.positionValue || "today");
+    setPositionSelect(initialSettings?.positionSelect || initialSettings?.displayOnPage || "all");
+    setPositionValue(initialSettings?.positionValue || `${initialSettings?.verticalPosition || "top"} ${initialSettings?.horizontalPosition || "left"}`);
     setTopSelectValue(initialSettings?.topSelectValue || "");
     setLeftSelectValue(initialSettings?.leftSelectValue || "");
     setMessage(initialSettings?.message || "{NUMBER} people visited\nin last 30 minutes");
@@ -617,6 +619,10 @@ export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings 
     setTextColor(initialSettings?.textColor || "#3F3F3F");
   }, [initialSettings]);
 
+  useEffect(() => {
+    resetToDefaults();
+  }, [initialSettings, resetToDefaults]);
+
   // Expose reset function to parent
   useEffect(() => {
     if (onReset) {
@@ -624,17 +630,8 @@ export function VisitorsTabSection({ onSettingsChange, onReset, initialSettings 
     }
   }, [onReset, resetToDefaults]);
 
-  // Track if this is the first render
-  const isFirstRender = useRef(true);
-  
-  // Effect to emit settings changes - only when values actually change
+  // Effect to emit settings changes whenever values change
   useEffect(() => {
-    // Skip first render to avoid initial trigger
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    
     const currentSettings = {
       // Settings
       displayOnPage,

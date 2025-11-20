@@ -1,4 +1,4 @@
-import { Page, Layout, Grid, Text } from "@shopify/polaris";
+import { Page, Layout, Grid } from "@shopify/polaris";
 import { CampaignCard } from "../components/CampaignCard";
 import { useNavigate } from "@remix-run/react";
 
@@ -29,14 +29,14 @@ const CAMPAIGNS = [
     title: "Popup- Popup",
     subtitle: "Create coupon or newsletter popup to interact with your customer",
     image: null,
-    link: "/app/custom-popup"
+    link: "/app/banner-pop"
   },
   {
-    type: "Last Sale",
-    title: "Last Sale- Product Specific",
-    subtitle: "Display recent sales of specific products to boost customer confidence.",
+    type: "Cart Countdown",
+    title: "Cart Countdown",
+    subtitle: "Display a countdown timer for the cart to encourage customers to purchase.",
     image: null,
-    link: "/app/last-sale"
+    link: "/app/cart-countdown"
   },
   {
     type: "Low Stock",

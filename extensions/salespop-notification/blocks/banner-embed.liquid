@@ -1,0 +1,29 @@
+{% comment %}
+  Custom Banner popup app embed block.
+  Injects root container and loads bundled script.
+{% endcomment %}
+
+<meta name="shop" content="{{ shop.permanent_domain }}">
+
+<div id="salespop-banner-root" style="display:none;"></div>
+
+<script>
+  window.SalesPopBannerShop = "{{ shop.permanent_domain }}";
+  {% if shop.metafields.app_salespop.app_url %}
+    window.SalesPopBannerAppUrl = "{{ shop.metafields.app_salespop.app_url }}";
+  {% else %}
+    window.SalesPopBannerAppUrl = "https://exec-idea-reflection-kitty.trycloudflare.com";
+  {% endif %}
+</script>
+<meta name="salespop-app-url" content="https://exec-idea-reflection-kitty.trycloudflare.com">
+
+<script src="{{ 'banner-embed.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Custom Banner Popup",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
+

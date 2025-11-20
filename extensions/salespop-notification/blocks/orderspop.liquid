@@ -17,18 +17,24 @@
   {%- else -%}
     // Cloudflare tunnel URL for development
     // Update this when your tunnel URL changes (restart shopify app dev)
-    window.SalesPopAppUrl = "https://redeem-watt-edited-shirts.trycloudflare.com";
+    window.SalesPopAppUrl = "https://book-organizations-chrome-usage.trycloudflare.com";
   {%- endif -%}
   console.log('Sales Pop: Shop domain =', window.SalesPopShop);
   console.log('Sales Pop: App URL =', window.SalesPopAppUrl);
 </script>
-<meta name="salespop-app-url" content="https://redeem-watt-edited-shirts.trycloudflare.com">
+<meta name="salespop-app-url" content="https://book-organizations-chrome-usage.trycloudflare.com">
 
 <div id="salespop-notification-container" style="display: none;">
   <div class="salespop-popup">
     <div class="salespop-content">
       <div class="salespop-product-image">
-        <img src="{{ 'green-t-shirt.jpg' | asset_url }}" alt="Product" id="salespop-img" />
+        <img
+          src="{{ 'salespop-placeholder.png' | asset_url }}"
+          alt="Product"
+          id="salespop-img"
+          width="48"
+          height="48"
+        />
       </div>
       <div class="salespop-info">
         <div class="salespop-text" id="salespop-text">Federico from Turin, Italy</div>
@@ -137,7 +143,7 @@
   }
 </style>
 
-<script src="{{ 'salespop.js' | asset_url }}" onerror="console.error('Sales Pop: Failed to load script from asset_url')"></script>
+<script src="{{ 'salespop.js' | asset_url }}" defer onerror="console.error('Sales Pop: Failed to load script from asset_url')"></script>
 {%- comment -%}
   Fallback: Load script from app URL if asset_url doesn't work
   Wait a bit to see if the script loaded, then try app URL

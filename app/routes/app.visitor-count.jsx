@@ -4,7 +4,7 @@ import { VisitorsTabSection } from "../components/VisitorsTabSection";
 import { VisitorCountPreview } from "../components/VisitorCountPreview";
 import Savebar from "../components/Savebar";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useFetcher } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import { getVisitorCountSettings } from "../visitorSettingsRepository.server";
 
@@ -50,6 +50,8 @@ export default function VisitorCount() {
   const [notificationMessage, setNotificationMessage] = useState('');
   const resetRef = useRef(null);
   const settingsInitializedRef = useRef(false);
+  const fetcher = useFetcher();
+  const lastFetcherDataRef = useRef(null);
   
   // Mark settings as initialized after first change from VisitorsTabSection
   const hasReceivedSettingsRef = useRef(false);
@@ -77,66 +79,78 @@ export default function VisitorCount() {
     });
   }, []);
 
-  const handleSave = async () => {
-    console.log('🔵 Visitor Count: handleSave called');
-    console.log('🔵 Settings being saved:', settings);
-    
-    try {
-      const response = await fetch('/api/visitor-count/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ settings }),
-      });
+  useEffect(() => {
+    if (fetcher.state === 'submitting') {
+      lastFetcherDataRef.current = null;
+    }
+  }, [fetcher.state]);
 
-      console.log('🔵 Response status:', response.status);
-      
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
-        }
-        console.error('❌ HTTP error response:', errorData);
-        const errorMsg = errorData.error || errorData.details || `HTTP ${response.status}`;
-        setNotificationMessage(`Error: ${errorMsg}`);
-        setShowNotification(true);
-        setTimeout(() => {
-          setShowNotification(false);
-        }, 5000);
-        return;
-      }
-      
-      const data = await response.json();
-      console.log('🔵 Response data:', data);
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data && fetcher.data !== lastFetcherDataRef.current) {
+      lastFetcherDataRef.current = fetcher.data;
+      const data = fetcher.data;
+      console.log('🔵 Visitor Count: fetcher completed, response data:', data);
 
       if (data.success) {
-        console.log('✅ Success! Setting notification...');
-        setLastSavedSettings(settings);
+        console.log('✅ Visitor Count: settings saved successfully');
+        setLastSavedSettings(() => ({ ...settings }));
         setNotificationMessage('Saved!');
         setShowNotification(true);
-        
         setTimeout(() => {
           setShowNotification(false);
         }, 3000);
       } else {
-        console.error('❌ API returned success: false');
+        console.error('❌ Visitor Count: API returned success: false');
         const errorMsg = data.error || data.details || data.message || 'Unknown error';
         setNotificationMessage(`Error saving: ${errorMsg}`);
         setShowNotification(true);
-        
         setTimeout(() => {
           setShowNotification(false);
         }, 7000);
       }
+    }
+
+    if (fetcher.state === 'submitting') {
+      console.log('🔵 Visitor Count: fetcher submitting...');
+    }
+
+    if (fetcher.state === 'loading') {
+      console.log('🔵 Visitor Count: fetcher loading...');
+    }
+  }, [fetcher.state, fetcher.data, settings]);
+
+  const handleSave = async () => {
+    console.log('🔵 Visitor Count: handleSave called');
+    console.log('🔵 Settings being saved:', settings);
+
+    if (!settings || typeof settings !== 'object' || Object.keys(settings).length === 0) {
+      console.error('❌ Visitor Count: Cannot save empty settings object');
+      setNotificationMessage('Error: No settings to save. Please configure your widget first.');
+      setShowNotification(true);
+      setTimeout(() => {
+        setShowNotification(false);
+      }, 5000);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('settings', JSON.stringify(settings));
+
+      console.log('🔵 Visitor Count: submitting FormData to /api/visitor-count/settings', {
+        settingsKeys: Object.keys(settings),
+        settingsSize: JSON.stringify(settings).length,
+      });
+
+      fetcher.submit(formData, {
+        method: 'POST',
+        action: '/api/visitor-count/settings',
+      });
     } catch (error) {
-      console.error('❌ Exception in handleSave:', error);
-      const errorMsg = error.message || 'Network error or server unavailable';
+      console.error('❌ Visitor Count: Error in handleSave:', error);
+      const errorMsg = error.message || 'Failed to send request';
       setNotificationMessage(`Error: ${errorMsg}`);
       setShowNotification(true);
-      
       setTimeout(() => {
         setShowNotification(false);
       }, 5000);

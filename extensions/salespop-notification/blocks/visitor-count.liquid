@@ -1,0 +1,46 @@
+{% comment %}
+  Visitor Count App Block
+  Injects the container and script that renders the visitor count widget on the storefront.
+{% endcomment %}
+
+<meta name="shop" content="{{ shop.permanent_domain }}">
+<script>
+  window.SalesPopShop = "{{ shop.permanent_domain }}";
+  {% if shop.metafields.app_salespop.app_url %}
+    window.SalesPopAppUrl = "{{ shop.metafields.app_salespop.app_url }}";
+  {% else %}
+    window.SalesPopAppUrl = "https://employee-views-boats-northern.trycloudflare.com";
+  {% endif %}
+</script>
+{% if shop.metafields.app_salespop.app_url or app.metafields.app_salespop.app_url %}
+  <meta name="salespop-app-url" content="https://employee-views-boats-northern.trycloudflare.com">
+{% endif %}
+
+<div id="salespop-visitor-count-container" style="display:none;"></div>
+
+<script src="{{ 'visitor-count.js' | asset_url }}" defer></script>
+<script>
+  setTimeout(function() {
+    if (!window.SalesPopVisitorCountInitialized && window.SalesPopAppUrl) {
+      var script = document.createElement('script');
+      script.src = window.SalesPopAppUrl + '/extensions/salespop-notification/assets/visitor-count.js';
+      script.defer = true;
+      script.onload = function() {
+        console.log('Visitor Count: Loaded script from app URL');
+      };
+      script.onerror = function() {
+        console.error('Visitor Count: Failed to load script from', script.src);
+      };
+      document.head.appendChild(script);
+    }
+  }, 400);
+</script>
+
+{% schema %}
+{
+  "name": "Visitor Count Widget",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
+

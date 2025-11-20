@@ -1,0 +1,27 @@
+{% comment %}
+  Cart Countdown app embed block.
+  Injects shop context and loads cart countdown script.
+{% endcomment %}
+
+<meta name="shop" content="{{ shop.permanent_domain }}">
+
+<script>
+  window.SalesPopCartCountdownShop = "{{ shop.permanent_domain }}";
+  {% if shop.metafields.app_salespop.app_url %}
+    window.SalesPopCartCountdownAppUrl = "{{ shop.metafields.app_salespop.app_url }}";
+  {% else %}
+    window.SalesPopCartCountdownAppUrl = "https://exec-idea-reflection-kitty.trycloudflare.com";
+  {% endif %}
+</script>
+<meta name="salespop-app-url" content="https://exec-idea-reflection-kitty.trycloudflare.com">
+
+<script src="{{ 'cart-countdown.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Cart Countdown",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
+

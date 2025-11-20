@@ -1,7 +1,7 @@
 import { json } from '@remix-run/node';
 import crypto from 'crypto';
 import { getSalesPopStyles } from '../stylesRepository.server';
-import { getRandomOrder } from '../ordersRepository.server';
+import { getCartCountdownSettings } from '../cartCountdownSettingsRepository.server';
 import { apiVersion } from '../shopify.server';
 import prisma from '../db.server';
 
@@ -52,8 +52,6 @@ export async function loader({ request, params }) {
     const shop = queryParams.shop;
     const signature = queryParams.signature;
     const timestamp = queryParams.timestamp;
-    const pathPrefix = queryParams.path_prefix;
-
     // Validate required parameters
     if (!shop || !signature || !timestamp) {
       console.error('[App Proxy] Missing required parameters:', { shop: !!shop, signature: !!signature, timestamp: !!timestamp });
@@ -98,14 +96,16 @@ export async function loader({ request, params }) {
       }, { status: 400 });
     }
 
-    // Determine the requested endpoint from the path
-    const path = params['*'] || '';
+    const rawPath = params['*'] || '';
+    const pathSegments = rawPath.split('/').filter(Boolean);
+    const pathRoot = pathSegments[0] || '';
     
-    // Route to appropriate handler
-    if (path === 'orders' || path.startsWith('orders/')) {
+    if (pathRoot === 'orders') {
       return await handleOrdersRequest(normalizedShop);
-    } else if (path === 'styles' || path.startsWith('styles/')) {
+    } else if (pathRoot === 'styles') {
       return await handleStylesRequest(normalizedShop);
+    } else if (pathRoot === 'cart-countdown') {
+      return await handleCartCountdownRequest(normalizedShop);
     } else {
       // Default: return combined data (styles + orders)
       return await handleCombinedRequest(normalizedShop);
@@ -116,6 +116,49 @@ export async function loader({ request, params }) {
       error: 'Internal server error',
       success: false 
     }, { status: 500 });
+  }
+}
+
+export async function action({ request, params }) {
+  try {
+    if (request.method !== 'POST') {
+      return json({ success: false, error: 'Method not allowed' }, { status: 405 });
+    }
+
+    const url = new URL(request.url);
+    const queryParams = Object.fromEntries(url.searchParams);
+
+    const shop = queryParams.shop;
+    const signature = queryParams.signature;
+    const timestamp = queryParams.timestamp;
+
+    if (!shop || !signature || !timestamp) {
+      console.error('[App Proxy] (action) Missing required parameters:', { shop: !!shop, signature: !!signature, timestamp: !!timestamp });
+      return json({ success: false, error: 'Missing required parameters' }, { status: 400 });
+    }
+
+    const secretKey = process.env.SHOPIFY_API_SECRET || '';
+    if (!secretKey) {
+      console.error('[App Proxy] (action) SHOPIFY_API_SECRET not configured');
+      return json({ success: false, error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const isValidSignature = verifyAppProxySignature(queryParams, secretKey);
+    if (!isValidSignature) {
+      console.error('[App Proxy] (action) Invalid signature for shop:', shop);
+      return json({ success: false, error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const normalizedShop = shop.trim().toLowerCase();
+    if (!normalizedShop.includes('.myshopify.com')) {
+      console.error(`[App Proxy] (action) Invalid shop domain format: "${normalizedShop}"`);
+      return json({ success: false, error: 'Invalid shop domain' }, { status: 400 });
+    }
+
+    return json({ success: false, error: 'Unsupported endpoint' }, { status: 404 });
+  } catch (error) {
+    console.error('[App Proxy] Action error:', error);
+    return json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -414,6 +457,34 @@ async function handleStylesRequest(shop) {
   return json({ 
     styles: styles || {},
     success: true 
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept',
+    }
+  });
+}
+
+/**
+ * Handle cart countdown settings request
+ */
+async function handleCartCountdownRequest(shop) {
+  console.log(`[App Proxy] Fetching cart countdown settings for shop: "${shop}"`);
+  const settings = await getCartCountdownSettings(shop);
+  if (settings) {
+    console.log(`[App Proxy] ✓ Found cart countdown settings for ${shop}:`, {
+      propertyCount: Object.keys(settings).length,
+      keys: Object.keys(settings).slice(0, 10),
+    });
+  } else {
+    console.warn(`[App Proxy] ✗ No cart countdown settings found for shop: "${shop}"`);
+  }
+
+  return json({
+    success: true,
+    settings: settings || {},
   }, {
     headers: {
       'Content-Type': 'application/json',
