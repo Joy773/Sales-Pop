@@ -1,5 +1,5 @@
 import { json } from '@remix-run/node';
-import { getSalesPopStyles } from '../stylesRepository.server';
+import { getSalesPopStyles, getSalesPopEnabled } from '../stylesRepository.server';
 import { getRandomOrder } from '../ordersRepository.server';
 import { apiVersion } from '../shopify.server';
 import prisma from '../db.server';
@@ -48,36 +48,36 @@ export async function loader({ request }) {
       }, { status: 400 });
     }
 
+    // Check if campaign is enabled
+    const isEnabled = await getSalesPopEnabled(shop);
+    if (!isEnabled) {
+      return json({ 
+        success: false,
+        enabled: false,
+        message: 'Campaign is disabled'
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept',
+        }
+      });
+    }
+
     // Fetch styles from MongoDB database
-    console.log(`[Sales Pop API] Looking up styles for shop: "${shop}" (normalized)`);
     const styles = await getSalesPopStyles(shop);
     
-    if (styles) {
-      console.log(`[Sales Pop API] ✓ Found styles for ${shop}:`, {
-        propertyCount: Object.keys(styles).length,
-        keys: Object.keys(styles).slice(0, 10), // First 10 keys
-        hasSelectedOrderType: 'selectedOrderType' in styles,
-        hasLookbackDays: 'lookbackDays' in styles,
-        hasBackgroundColor: 'backgroundColor' in styles,
-        hasMessageTemplate: 'messageTemplate' in styles
-      });
-    } else {
-      console.warn(`[Sales Pop API] ✗ No styles found in MongoDB for shop: "${shop}"`);
-      console.warn(`[Sales Pop API] This could mean:`);
-      console.warn(`[Sales Pop API]   1. Styles haven't been saved yet`);
-      console.warn(`[Sales Pop API]   2. Shop domain mismatch (saved with different format)`);
-      console.warn(`[Sales Pop API]   3. MongoDB connection issue`);
+    if (!styles) {
+      console.error(`[Sales Pop API] ✗ No styles found in MongoDB for shop: "${shop}"`);
     }
     
     // Fetch notification data - fetch directly from GraphQL for real-time data
     // Skip MongoDB cache to always get fresh data
-    console.log(`[Sales Pop API] Fetching real-time orders from Shopify GraphQL API...`);
     let notification = null;
       
       try {
       // Load session from Prisma database using shop domain
       // Try both normalized and original shop format
-      console.log(`[Sales Pop API] Looking for session with shop: "${shop}"`);
       
       let sessionRecord = await prisma.session.findFirst({
         where: {
@@ -90,7 +90,6 @@ export async function loader({ request }) {
       if (!sessionRecord) {
         const originalShop = url.searchParams.get('shop')?.trim();
         if (originalShop && originalShop !== shop) {
-          console.log(`[Sales Pop API] Trying original shop format: "${originalShop}"`);
           sessionRecord = await prisma.session.findFirst({
             where: {
               shop: originalShop,
@@ -106,16 +105,13 @@ export async function loader({ request }) {
           where: { isOnline: false },
           select: { shop: true, id: true }
         });
-        console.warn(`[Sales Pop API] ⚠️ No session found for "${shop}"`);
-        console.warn(`[Sales Pop API] Available sessions:`, allSessions.map(s => s.shop));
+        console.error(`[Sales Pop API] No session found for "${shop}". Available sessions: ${allSessions.map(s => s.shop).join(', ')}`);
       }
       
       if (!sessionRecord || !sessionRecord.accessToken) {
-        console.warn(`[Sales Pop API] ⚠️ No session found for ${shop}, cannot query Shopify API`);
+        console.error(`[Sales Pop API] No session found for ${shop}, cannot query Shopify API`);
         throw new Error('No session found');
       }
-      
-      console.log(`[Sales Pop API] ✓ Session found: id=${sessionRecord.id}, shop=${sessionRecord.shop}, hasAccessToken=${!!sessionRecord.accessToken}`);
       
       // Convert Prisma session to Shopify session format
       const session = {
@@ -128,8 +124,6 @@ export async function loader({ request }) {
         accessToken: sessionRecord.accessToken,
         userId: sessionRecord.userId?.toString(),
       };
-      
-      console.log(`[Sales Pop API] ✓ Session loaded for ${shop}, querying Shopify GraphQL`);
       
       // Get configuration to determine order type
       const orderType = styles?.selectedOrderType || 'realtime';
@@ -225,7 +219,6 @@ export async function loader({ request }) {
       
       // Query Shopify GraphQL API directly using fetch with access token
       const shopifyApiUrl = `https://${session.shop}/admin/api/${apiVersion}/graphql.json`;
-      console.log(`[Sales Pop API] Querying Shopify GraphQL API: ${shopifyApiUrl}`);
       
       const response = await fetch(shopifyApiUrl, {
         method: 'POST',
@@ -238,8 +231,6 @@ export async function loader({ request }) {
         })
       });
       
-      console.log(`[Sales Pop API] GraphQL response received, status: ${response.status}`);
-      
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`[Sales Pop API] HTTP error ${response.status}:`, errorText);
@@ -247,14 +238,6 @@ export async function loader({ request }) {
       }
       
       const data = await response.json();
-      
-      console.log(`[Sales Pop API] GraphQL response data:`, {
-        hasErrors: !!data.errors,
-        hasData: !!data.data,
-        hasOrders: !!(data.data && data.data.orders),
-        errorCount: data.errors ? data.errors.length : 0
-      });
-      
       if (data.errors) {
         console.error('[Sales Pop API] GraphQL errors:', data.errors);
         console.error('[Sales Pop API] Full error details:', JSON.stringify(data.errors, null, 2));
@@ -267,7 +250,6 @@ export async function loader({ request }) {
       }
       
       const orders = data.data.orders.edges.map(edge => edge.node);
-      console.log(`[Sales Pop API] ✓ Fetched ${orders.length} orders from Shopify for ${shop}`);
       
       // Filter and transform orders
       const validOrders = orders
@@ -325,16 +307,8 @@ export async function loader({ request }) {
         // Pick a random order from the fetched orders
         const randomIndex = Math.floor(Math.random() * validOrders.length);
         notification = validOrders[randomIndex];
-        console.log(`[Sales Pop API] ✓ Selected real order from GraphQL: ${notification.customer} bought ${notification.product} in ${notification.location}`);
-        console.log(`[Sales Pop API] Order details:`, {
-          customer: notification.customer,
-          product: notification.product,
-          location: notification.location,
-          time: notification.time,
-          isRealData: true
-        });
       } else {
-        console.warn(`[Sales Pop API] ⚠️ No valid orders found after filtering (${orders.length} total orders fetched)`);
+        console.error(`[Sales Pop API] ⚠️ No valid orders found after filtering (${orders.length} total orders fetched)`);
       }
       
       } catch (shopifyError) {
@@ -343,17 +317,13 @@ export async function loader({ request }) {
         
         // If it's a PCD error, provide helpful guidance
         if (shopifyError.message && shopifyError.message.includes('not approved to access the Order object')) {
-          console.warn(`[Sales Pop API] ⚠️ PCD (Protected Customer Data) access required.`);
-          console.warn(`[Sales Pop API] Solutions:`);
-          console.warn(`[Sales Pop API]   1. Enable PCD in Shopify Partner Dashboard (requires approval)`);
-          console.warn(`[Sales Pop API]   2. Use admin UI to fetch orders first (saves to MongoDB)`);
-          console.warn(`[Sales Pop API]   3. Webhook will auto-populate MongoDB when new orders are created`);
+          console.error(`[Sales Pop API] ⚠️ PCD (Protected Customer Data) access required. Enable PCD in Partner Dashboard, fetch orders via admin UI, or rely on order webhooks to populate data.`);
         }
       }
     
     // Fallback to mock data only if GraphQL completely failed
     if (!notification) {
-      console.warn(`[Sales Pop API] ⚠️ No real orders available, using fallback mock data`);
+      console.error(`[Sales Pop API] ⚠️ No real orders available, using fallback mock data`);
       notification = {
         customer: 'Sarah Johnson',
         location: 'New York, USA',
@@ -362,14 +332,7 @@ export async function loader({ request }) {
         productUrl: '/products/classic-t-shirt',
         time: 'just now'
       };
-      console.log(`[Sales Pop API] Using mock data (this means GraphQL fetch failed):`, notification);
     }
-    
-    console.log(`[Sales Pop API] Returning notification:`, {
-      customer: notification.customer,
-      product: notification.product,
-      isMockData: notification.customer === 'Sarah Johnson' && notification.product === 'Classic T-Shirt'
-    });
 
     // Ensure styles is always an object (never null or undefined)
     // Even if not found in DB, return empty object so frontend can merge with defaults
@@ -382,40 +345,9 @@ export async function loader({ request }) {
       success: true 
     };
     
-    console.log(`[Sales Pop API] Returning data for ${shop}:`, {
-      hasStyles: !!styles && Object.keys(finalStyles).length > 0,
-      styleKeys: Object.keys(finalStyles),
-      styleCount: Object.keys(finalStyles).length,
-      stylesIsNull: styles === null,
-      stylesIsUndefined: styles === undefined,
-      hasNotification: !!notification,
-      notificationCustomer: notification?.customer,
-      notificationProduct: notification?.product
-    });
-    
-    // Log a sample of the styles being returned
-    if (Object.keys(finalStyles).length > 0) {
-      console.log(`[Sales Pop API] ✓ Sample styles being returned:`, {
-        backgroundColor: finalStyles.backgroundColor,
-        textColor: finalStyles.textColor,
-        messageTemplate: finalStyles.messageTemplate,
-        popupInterval: finalStyles.popupInterval,
-        popupDuration: finalStyles.popupDuration,
-        selectedOrderType: finalStyles.selectedOrderType,
-        lookbackDays: finalStyles.lookbackDays
-      });
-    } else {
-      console.warn(`[Sales Pop API] ⚠️ No styles found! Returning empty styles object. Frontend will use defaults.`);
-      console.warn(`[Sales Pop API] To fix: Save your styles in the admin UI first.`);
+    if (Object.keys(finalStyles).length === 0) {
+      console.error(`[Sales Pop API] ⚠️ No styles found! Returning empty styles object. Frontend will use defaults. Save styles in the admin UI to resolve.`);
     }
-
-    // Log the response data being sent
-    console.log(`[Sales Pop API] Sending response for ${shop}:`, {
-      success: responseData.success,
-      hasStyles: !!responseData.styles && Object.keys(responseData.styles).length > 0,
-      hasNotification: !!responseData.notification,
-      notificationType: responseData.notification ? (responseData.notification.customer === 'Sarah Johnson' ? 'mock' : 'real') : 'none'
-    });
 
     // Return combined data: styles from MongoDB + order from MongoDB (cached from Shopify)
     const response = json(responseData, {
@@ -428,7 +360,6 @@ export async function loader({ request }) {
       }
     });
     
-    console.log(`[Sales Pop API] Response object created for ${shop}, status: ${response.status}`);
     return response;
   } catch (error) {
     console.error('[Sales Pop API] Error loading salespop data:', error);

@@ -96,11 +96,8 @@ export default function SalesPop() {
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
       const data = fetcher.data;
-      console.log('🔵 Fetcher completed, response data:', data);
       
       if (data.success) {
-        console.log('✅ Success! Setting notification...');
-        
         // Update lastSavedStyles so isDirty becomes false
         setLastSavedStyles(styles);
         
@@ -111,15 +108,13 @@ export default function SalesPop() {
         
         // If order settings changed, fetch orders from Shopify
         if (orderSettingsChanged) {
-          console.log('🔄 Order settings changed, fetching orders from Shopify...');
           fetch('/api/orders')
             .then(ordersResponse => ordersResponse.json())
             .then(ordersData => {
               if (ordersData.success) {
-                console.log(`✅ Successfully fetched ${ordersData.count || 0} orders from Shopify`);
                 setNotificationMessage(`Saved! Fetched ${ordersData.count || 0} orders.`);
               } else {
-                console.warn('⚠️ Failed to fetch orders:', ordersData.error);
+                console.error('Failed to fetch orders:', ordersData.error);
                 setNotificationMessage('Saved! (Failed to fetch orders)');
               }
               setShowNotification(true);
@@ -145,23 +140,9 @@ export default function SalesPop() {
         setTimeout(() => setShowNotification(false), 7000);
       }
     }
-    
-    if (fetcher.state === 'submitting') {
-      console.log('🔵 Fetcher submitting...');
-    }
-    
-    if (fetcher.state === 'loading') {
-      console.log('🔵 Fetcher loading...');
-    }
   }, [fetcher.state, fetcher.data, styles, lastSavedStyles]);
 
   const handleSave = async () => {
-    console.log('🔵 handleSave called');
-    console.log('🔵 Styles being saved:', styles);
-    console.log('🔵 Styles object keys:', Object.keys(styles));
-    console.log('🔵 Styles object size:', JSON.stringify(styles).length, 'bytes');
-    console.log('🔵 Styles is empty?', Object.keys(styles).length === 0);
-    
     // Validate styles object before sending
     if (!styles || typeof styles !== 'object' || Object.keys(styles).length === 0) {
       console.error('❌ Cannot save: styles object is empty or invalid');
@@ -174,23 +155,13 @@ export default function SalesPop() {
     }
     
     try {
-      console.log('🔵 Using Remix fetcher to submit to /api/styles');
-      
       // Try using FormData first (works better with Remix fetcher)
       const formData = new FormData();
       formData.append('styles', JSON.stringify(styles));
-      
-      console.log('🔵 Submitting FormData with styles:', {
-        stylesKeys: Object.keys(styles),
-        stylesStringLength: JSON.stringify(styles).length
-      });
-      
       fetcher.submit(formData, {
         method: 'POST',
         action: '/api/styles',
       });
-      
-      console.log('🔵 Fetcher submit called, fetcher state:', fetcher.state);
     } catch (error) {
       console.error('❌ Error in handleSave:', error);
       console.error('❌ Error details:', {
@@ -207,7 +178,6 @@ export default function SalesPop() {
   };
 
   const handleDiscard = () => {
-    console.log('🟡 handleDiscard called');
     // Reset all settings to last saved values
     setStyles(lastSavedStyles);
     if (resetRef.current) {
@@ -226,7 +196,12 @@ export default function SalesPop() {
 
   return (
     <>
-      <Savebar onSave={handleSave} onDiscard={handleDiscard} isDirty={isDirty} />
+      <Savebar 
+        onSave={handleSave} 
+        onDiscard={handleDiscard} 
+        isDirty={isDirty} 
+        isLoading={fetcher.state === 'submitting' || fetcher.state === 'loading'} 
+      />
       
       {/* Notification */}
       {showNotification && (

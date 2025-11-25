@@ -1,6 +1,7 @@
 import { json } from "@remix-run/node";
 import { getBannerSettings } from "../bannerSettingsRepository.server";
 import { applyBannerSettingsDefaults } from "../utils/bannerSettingsDefaults";
+import { saveBannerSubscription } from "../bannerSubscriptionsRepository.server";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,23 @@ export async function action({ request }) {
       );
     }
 
+    // Always treat contact as email (phone support removed)
+    const subscriptionType = "email";
+
+    // Parse goal and styles if provided (they come as JSON strings from FormData)
+    let goal = {};
+    let styles = {};
+    try {
+      if (payload.goal) {
+        goal = typeof payload.goal === 'string' ? JSON.parse(payload.goal) : payload.goal;
+      }
+      if (payload.styles) {
+        styles = typeof payload.styles === 'string' ? JSON.parse(payload.styles) : payload.styles;
+      }
+    } catch (parseError) {
+      console.warn('[BannerPop Subscribe API] Error parsing goal/styles:', parseError);
+    }
+
     // Fetch banner settings to retrieve the most recent success message.
     const settings = await getBannerSettings(shop);
     const normalizedSettings = applyBannerSettingsDefaults(settings || {});
@@ -61,7 +79,30 @@ export async function action({ request }) {
       normalizedSettings.goal?.successMessage ||
       "Thanks for subscribing! Please check your inbox.";
 
-    // TODO: Persist contact details if/when a collection is defined.
+    // Extract popup type and template
+    const popupType = goal?.popupSelection?.[0] || goal?.popupSelection || null;
+    const template = styles?.selectedTemplate || normalizedSettings.styles?.selectedTemplate || null;
+
+    // Save subscription to database
+    try {
+      // Always save as email (phone support removed)
+      const subscriptionData = {
+        email: contact, // Always save contact to email field
+        subscriptionType: "email", // Always email
+        popupType: popupType,
+        template: template,
+      };
+
+      await saveBannerSubscription(shop, subscriptionData);
+      console.log(`[BannerPop Subscribe API] ✓ Saved email subscription for shop: ${shop}`, {
+        popupType,
+        template,
+      });
+    } catch (saveError) {
+      // Log error but don't fail the request - subscription was attempted
+      console.error('[BannerPop Subscribe API] Error saving subscription:', saveError);
+      // Continue to return success message to user even if save fails
+    }
 
     return json(
       {

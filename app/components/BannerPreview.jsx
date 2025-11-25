@@ -24,13 +24,10 @@ export default function BannerPreview({settings}) {
   const textSize = 16;
   const headingFontSize = 24;
   const popupSelection = goal.popupSelection?.[0];
-  const subscriptionType = goal.subscriptionType?.[0] || 'email';
   const shouldShowContactInput =
     popupSelection === 'collect-email' || popupSelection === 'subscribe-discount';
-  const contactInputType = subscriptionType === 'phone' ? 'tel' : 'email';
-  const contactPlaceholder =
-    goal.emailLabel ||
-    (subscriptionType === 'phone' ? 'Your phone number' : 'Your email address');
+  const contactInputType = 'email';
+  const contactPlaceholder = 'Your email address';
   const discountCode = goal.discountCode?.trim();
 
   const [copied, setCopied] = useState(false);

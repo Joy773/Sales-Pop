@@ -1,5 +1,5 @@
 import { json } from '@remix-run/node';
-import { getVisitorCountSettings } from '../visitorSettingsRepository.server';
+import { getVisitorCountSettings, getVisitorCountEnabled } from '../visitorSettingsRepository.server';
 import { getVisitorCountSummary } from '../visitorEventsRepository.server';
 
 function buildCorsHeaders() {
@@ -36,6 +36,21 @@ export async function loader({ request }) {
       return json(
         { success: false, error: 'Invalid shop domain' },
         { status: 400, headers: buildCorsHeaders() },
+      );
+    }
+
+    // Check if campaign is enabled
+    const isEnabled = await getVisitorCountEnabled(shop);
+    if (!isEnabled) {
+      return json(
+        {
+          success: false,
+          enabled: false,
+          message: 'Campaign is disabled',
+          settings: {},
+          visitor: null,
+        },
+        { headers: buildCorsHeaders() },
       );
     }
 

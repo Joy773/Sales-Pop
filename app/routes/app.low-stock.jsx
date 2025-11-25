@@ -1,24 +1,26 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { Layout, Page, Box } from "@shopify/polaris";
-import BannerTabSection from "../components/BannerTabSection";
-import BannerPreview from "../components/BannerPreview";
+import { Page, Layout, Box } from "@shopify/polaris";
+import LowAlertTabSection from "../components/LowAlertTabSection";
+import LowAlertPreview from "../components/LowAlertPreview";
 import Savebar from "../components/Savebar";
 import { authenticate } from "../shopify.server";
-import { getBannerSettings } from "../bannerSettingsRepository.server";
-import { applyBannerSettingsDefaults } from "../utils/bannerSettingsDefaults.js";
+import { getLowStockSettings } from "../lowStockSettingsRepository.server";
 
-export const loader = async ({ request }) => {
+/**
+ * Load settings when the page opens
+ */
+export async function loader({ request }) {
   try {
     const { session } = await authenticate.admin(request);
-    const savedSettings = await getBannerSettings(session.shop);
-    return json({ savedSettings });
+    const savedSettings = await getLowStockSettings(session.shop);
+    return json({ savedSettings: savedSettings || {} });
   } catch (error) {
-    console.error("[BannerPop Loader] Failed to load banner settings:", error);
-    return json({ savedSettings: applyBannerSettingsDefaults() });
+    console.error("[LowStock Loader] Failed to load low stock settings:", error);
+    return json({ savedSettings: {} });
   }
-};
+}
 
 function deepEqual(a, b) {
   if (a === b) return true;
@@ -35,12 +37,31 @@ function deepEqual(a, b) {
   return true;
 }
 
-export default function BannerPop() {
+// Default settings
+const defaultSettings = {
+  customMessage: "",
+  lowStockThreshold: "10",
+  alertPosition: "top-left",
+  showAlertFor: "",
+  showAlert: "all-page",
+  specificPageUrl: "",
+  timeBeforeFirstAlert: "",
+  gapBetweenAlerts: "",
+  showCloseButton: false,
+  fontFamily: "Arial, sans-serif",
+  fontSize: 14,
+  icon: "warning",
+  animationEffect: "fade",
+  textColor: "#000000",
+};
+
+export default function LowAlert() {
   const { savedSettings } = useLoaderData();
   const fetcher = useFetcher();
 
+  // Merge saved settings with defaults
   const mergedSavedSettings = useMemo(
-    () => applyBannerSettingsDefaults(savedSettings),
+    () => ({ ...defaultSettings, ...savedSettings }),
     [savedSettings]
   );
 
@@ -49,11 +70,6 @@ export default function BannerPop() {
 
   const [notification, setNotification] = useState(null);
   const notificationTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    setSettings(mergedSavedSettings);
-    setLastSavedSettings(mergedSavedSettings);
-  }, [mergedSavedSettings]);
 
   useEffect(() => {
     return () => {
@@ -73,12 +89,11 @@ export default function BannerPop() {
     }, tone === "success" ? 3000 : 5000);
   }, []);
 
-  const handleSettingsChange = useCallback((updater) => {
-    setSettings((prev) => {
-      const next =
-        typeof updater === "function" ? updater(prev) : updater || prev;
-      return applyBannerSettingsDefaults(next);
-    });
+  const handleSettingsChange = useCallback((newSettings) => {
+    setSettings((prev) => ({
+      ...prev,
+      ...newSettings,
+    }));
   }, []);
 
   const isDirty = useMemo(
@@ -92,9 +107,8 @@ export default function BannerPop() {
     }
 
     if (fetcher.data.success) {
-      const saved = applyBannerSettingsDefaults(fetcher.data.settings);
-      setLastSavedSettings(saved);
-      setSettings(saved);
+      setLastSavedSettings(fetcher.data.settings);
+      setSettings(fetcher.data.settings);
       showNotification("Saved!");
     } else {
       const message =
@@ -109,16 +123,16 @@ export default function BannerPop() {
       formData.append("settings", JSON.stringify(settings));
       fetcher.submit(formData, {
         method: "POST",
-        action: "/api/banner-pop/settings",
+        action: "/api/low-stock/settings",
       });
     } catch (error) {
-      console.error("[BannerPop] Failed to submit settings:", error);
+      console.error("[LowStock] Failed to submit settings:", error);
       showNotification(error.message || "Failed to save settings", "error");
     }
   }, [fetcher, settings, showNotification]);
 
   const handleDiscard = useCallback(() => {
-    setSettings(applyBannerSettingsDefaults(lastSavedSettings));
+    setSettings(lastSavedSettings);
     showNotification("Changes discarded", "info");
   }, [lastSavedSettings, showNotification]);
 
@@ -156,20 +170,20 @@ export default function BannerPop() {
         </div>
       )}
       <Page
-        title="Custom Popup"
-        subtitle="Create banners or popups to engage with shoppers"
+        title="Low Stock Alert"
+        subtitle="Display alerts when products are running low on stock to create urgency"
         divider
       >
         <Box paddingBlockStart="400">
           <Layout>
             <Layout.Section variant="oneThird">
-              <BannerTabSection
+              <LowAlertTabSection
                 settings={settings}
                 onSettingsChange={handleSettingsChange}
               />
             </Layout.Section>
             <Layout.Section variant="twoThirds">
-              <BannerPreview settings={settings} />
+              <LowAlertPreview settings={settings} />
             </Layout.Section>
           </Layout>
         </Box>
@@ -177,3 +191,4 @@ export default function BannerPop() {
     </>
   );
 }
+

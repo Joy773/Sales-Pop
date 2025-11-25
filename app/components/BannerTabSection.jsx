@@ -5,6 +5,7 @@ import {
   Checkbox,
   ChoiceList,
   FormLayout,
+  Select,
   Tabs,
   Text,
   TextField,
@@ -19,7 +20,6 @@ const tabs = [
 
 export default function BannerTabSection({settings, onSettingsChange}) {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [showTemplates, setShowTemplates] = useState(true);
   const {goal, countdown, styles, behavior} = settings;
 
   const updateGoal = (field, value) =>
@@ -85,13 +85,35 @@ export default function BannerTabSection({settings, onSettingsChange}) {
           title="Choose your popup"
           selected={goal.popupSelection}
           choices={[
-            {label: 'Collect email/phone', value: 'collect-email'},
+            {label: 'Collect email', value: 'collect-email'},
             {label: 'Offer discount coupon', value: 'offer-discount'},
             {label: 'Subscribe to show discount code', value: 'subscribe-discount'},
             {label: 'Announcement', value: 'announcement'},
           ]}
           onChange={(value) => updateGoal('popupSelection', value)}
         />
+
+        <Select
+          label="Display on page"
+          options={[
+            {label: 'Homepage', value: 'homepage'},
+            {label: 'Specific page', value: 'specific-page'},
+            {label: 'All page', value: 'all-page'},
+          ]}
+          value={goal.displayOnPage || 'all-page'}
+          onChange={(value) => updateGoal('displayOnPage', value)}
+        />
+
+        {goal.displayOnPage === 'specific-page' && (
+          <TextField
+            label="Page URL"
+            value={goal.specificPageUrl || ''}
+            onChange={(value) => updateGoal('specificPageUrl', value)}
+            placeholder="/pages/about-us or /products/product-name"
+            autoComplete="off"
+            helpText="Enter the page URL where you want the popup to appear"
+          />
+        )}
 
         <FormLayout>
           <TextField
@@ -133,7 +155,8 @@ export default function BannerTabSection({settings, onSettingsChange}) {
           </Box>
         )}
 
-        {goal.popupSelection[0] !== 'offer-discount' && (
+        {(goal.popupSelection[0] === 'collect-email' ||
+          goal.popupSelection[0] === 'subscribe-discount') && (
           <>
             <ChoiceList
               title="Choose subscription type"
@@ -301,30 +324,38 @@ export default function BannerTabSection({settings, onSettingsChange}) {
           onChange={(value) => updateStyles('popoutLayout', value)}
         />
 
-        <Box className="flex flex-col gap-3">
-          <Box className="flex items-center gap-1 w-fit">
-            <Text variant="headingSm" as="h3">
-              Templates
-            </Text>
-            <button
-              type="button"
-              onClick={() => setShowTemplates((prev) => !prev)}
-              className="flex items-center justify-center w-8 h-8 text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary border border-transparent hover:border-primary-200 rounded-full transition"
-              aria-expanded={showTemplates}
-              aria-label={showTemplates ? 'Collapse templates' : 'Expand templates'}
-            >
-              <span
-                aria-hidden="true"
-                className="inline-block"
-                style={{transform: showTemplates ? 'rotate(180deg)' : 'rotate(0deg)'}}
-              >
-                ▾
-              </span>
-            </button>
-          </Box>
+        <TextField
+          label="Background image URL"
+          value={styles.backgroundImageUrl ?? ''}
+          onChange={(value) => updateStyles('backgroundImageUrl', value.trim())}
+          placeholder="https://cdn.shopify.com/sample-background.jpg"
+          autoComplete="off"
+        />
 
-          {showTemplates && (
-            <Box className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <Box
+          className="flex flex-col gap-3"
+          style={{
+            marginTop: '10px',
+          }}
+        >
+          <Text
+            variant="headingSm"
+            as="h3"
+            style={{
+              marginBottom: '20px',
+            }}
+          >
+            Templates
+          </Text>
+
+          <Box
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: '16px',
+              marginTop: '10px',
+            }}
+          >
               {BANNER_TEMPLATES.map(({id, label, preview}) => {
                 const isSelected = styles.selectedTemplate === id;
 
@@ -354,13 +385,16 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                         : '0 2px 6px rgba(15, 23, 42, 0.05)',
                     }}
                   >
-                    <Box className="px-4 pt-4">
+                <Box className="px-4 pt-4">
                       <Box
                         className="rounded-xl overflow-hidden"
                         style={{
                           backgroundColor: preview.background,
                           border: `1px solid rgba(15, 23, 42, 0.06)`,
-                          padding: '12px',
+                      padding: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                         }}
                       >
                         <Box className="flex items-center gap-3">
@@ -372,53 +406,15 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                               backgroundColor: preview.accent,
                             }}
                           />
-                          <Box className="flex-1 flex flex-col gap-2">
-                            <Box
-                              style={{
-                                height: '6px',
-                                borderRadius: '999px',
-                                backgroundColor: preview.title,
-                              }}
-                            />
-                            <Box
-                              style={{
-                                height: '6px',
-                                borderRadius: '999px',
-                                width: '70%',
-                                backgroundColor: preview.subtitle,
-                              }}
-                            />
-                            <Box
-                              style={{
-                                height: '6px',
-                                borderRadius: '999px',
-                                width: '45%',
-                                backgroundColor: preview.cta,
-                              }}
-                            />
-                          </Box>
+                          <Box className="flex-1" />
                         </Box>
                       </Box>
-                    </Box>
-                    <Box className="px-4 py-3 border-t border-slate-200/80">
-                      <Text as="span" variant="bodySm">
-                        {label}
-                      </Text>
                     </Box>
                   </Box>
                 );
               })}
-            </Box>
-          )}
+          </Box>
         </Box>
-
-        <TextField
-          label="Background image URL"
-          value={styles.backgroundImageUrl ?? ''}
-          onChange={(value) => updateStyles('backgroundImageUrl', value.trim())}
-          placeholder="https://cdn.shopify.com/sample-background.jpg"
-          autoComplete="off"
-        />
 
       </Box>
     </Card>,

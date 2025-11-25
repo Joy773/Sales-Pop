@@ -88,7 +88,7 @@ export default function CartTabSection({ settings, onSettingsChange }) {
               position: 'relative',
               height: '36px',
               borderRadius: 'var(--p-border-radius-200)',
-              border: '1px solid var(--p-color-border-subdued)',
+              border: '1px solid #000000',
               overflow: 'hidden',
               cursor: 'pointer',
               maxWidth: '200px'
@@ -129,7 +129,7 @@ export default function CartTabSection({ settings, onSettingsChange }) {
               position: 'relative',
               height: '36px',
               borderRadius: 'var(--p-border-radius-200)',
-              border: '1px solid var(--p-color-border-subdued)',
+              border: '1px solid #000000',
               overflow: 'hidden',
               cursor: 'pointer',
               maxWidth: '200px'

@@ -89,10 +89,8 @@ export default function VisitorCount() {
     if (fetcher.state === 'idle' && fetcher.data && fetcher.data !== lastFetcherDataRef.current) {
       lastFetcherDataRef.current = fetcher.data;
       const data = fetcher.data;
-      console.log('🔵 Visitor Count: fetcher completed, response data:', data);
 
       if (data.success) {
-        console.log('✅ Visitor Count: settings saved successfully');
         setLastSavedSettings(() => ({ ...settings }));
         setNotificationMessage('Saved!');
         setShowNotification(true);
@@ -100,7 +98,7 @@ export default function VisitorCount() {
           setShowNotification(false);
         }, 3000);
       } else {
-        console.error('❌ Visitor Count: API returned success: false');
+        console.error('Visitor Count: API returned success: false');
         const errorMsg = data.error || data.details || data.message || 'Unknown error';
         setNotificationMessage(`Error saving: ${errorMsg}`);
         setShowNotification(true);
@@ -109,22 +107,11 @@ export default function VisitorCount() {
         }, 7000);
       }
     }
-
-    if (fetcher.state === 'submitting') {
-      console.log('🔵 Visitor Count: fetcher submitting...');
-    }
-
-    if (fetcher.state === 'loading') {
-      console.log('🔵 Visitor Count: fetcher loading...');
-    }
   }, [fetcher.state, fetcher.data, settings]);
 
   const handleSave = async () => {
-    console.log('🔵 Visitor Count: handleSave called');
-    console.log('🔵 Settings being saved:', settings);
-
     if (!settings || typeof settings !== 'object' || Object.keys(settings).length === 0) {
-      console.error('❌ Visitor Count: Cannot save empty settings object');
+      console.error('Visitor Count: Cannot save empty settings object');
       setNotificationMessage('Error: No settings to save. Please configure your widget first.');
       setShowNotification(true);
       setTimeout(() => {
@@ -137,17 +124,12 @@ export default function VisitorCount() {
       const formData = new FormData();
       formData.append('settings', JSON.stringify(settings));
 
-      console.log('🔵 Visitor Count: submitting FormData to /api/visitor-count/settings', {
-        settingsKeys: Object.keys(settings),
-        settingsSize: JSON.stringify(settings).length,
-      });
-
       fetcher.submit(formData, {
         method: 'POST',
         action: '/api/visitor-count/settings',
       });
     } catch (error) {
-      console.error('❌ Visitor Count: Error in handleSave:', error);
+      console.error('Visitor Count: Error in handleSave:', error);
       const errorMsg = error.message || 'Failed to send request';
       setNotificationMessage(`Error: ${errorMsg}`);
       setShowNotification(true);
@@ -158,7 +140,6 @@ export default function VisitorCount() {
   };
 
   const handleDiscard = () => {
-    console.log('🟡 Visitor Count: handleDiscard called');
     setSettings(lastSavedSettings);
     if (resetRef.current) {
       resetRef.current();
@@ -174,7 +155,12 @@ export default function VisitorCount() {
 
   return (
     <>
-      <Savebar onSave={handleSave} onDiscard={handleDiscard} isDirty={isDirty} />
+      <Savebar 
+        onSave={handleSave} 
+        onDiscard={handleDiscard} 
+        isDirty={isDirty} 
+        isLoading={fetcher.state === 'submitting' || fetcher.state === 'loading'} 
+      />
       
       {/* Notification */}
       {showNotification && (

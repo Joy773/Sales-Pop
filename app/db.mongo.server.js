@@ -10,9 +10,11 @@ if (!process.env.DATABASE_URL) {
 
 const uri = process.env.DATABASE_URL;
 const options = {
-  // Add connection options for better error handling
-  serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+  // Connection options optimized for performance
+  serverSelectionTimeoutMS: 3000, // Timeout after 3 seconds (faster failure detection)
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  maxPoolSize: 10, // Maximum number of connections in the connection pool
+  minPoolSize: 2, // Minimum number of connections to maintain
 };
 
 if (process.env.NODE_ENV !== 'production') {

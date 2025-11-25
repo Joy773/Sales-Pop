@@ -1,27 +1,35 @@
 import { json } from '@remix-run/node';
 import { authenticate } from '../shopify.server';
 import {
-  getBannerSettings,
-  saveBannerSettings,
-} from '../bannerSettingsRepository.server';
+  getLowStockSettings,
+  saveLowStockSettings,
+} from '../lowStockSettingsRepository.server';
 
+/**
+ * GET /api/low-stock/settings
+ * Loads low stock settings when the page opens
+ */
 export async function loader({ request }) {
   try {
     const { session } = await authenticate.admin(request);
-    const settings = await getBannerSettings(session.shop);
-    return json({ success: true, settings });
+    const settings = await getLowStockSettings(session.shop);
+    return json({ success: true, settings: settings || {} });
   } catch (error) {
-    console.error('[Banner Settings API] Loader error:', error);
+    console.error('[Low Stock Settings API] Loader error:', error);
     return json(
       {
         success: false,
-        error: error.message || 'Failed to load banner settings',
+        error: error.message || 'Failed to load low stock settings',
       },
       { status: 500 },
     );
   }
 }
 
+/**
+ * POST /api/low-stock/settings
+ * Saves low stock settings when "Save" is clicked
+ */
 export async function action({ request }) {
   try {
     const { session } = await authenticate.admin(request);
@@ -52,7 +60,17 @@ export async function action({ request }) {
     }
 
     const settings = payload.settings || payload;
-    const saved = await saveBannerSettings(shop, settings);
+    console.log(`[Low Stock Settings API] Saving settings for shop: ${shop}`, {
+      settingsKeys: Object.keys(settings),
+      settings: settings
+    });
+    
+    const saved = await saveLowStockSettings(shop, settings);
+    
+    console.log(`[Low Stock Settings API] Settings saved successfully for shop: ${shop}`, {
+      savedKeys: Object.keys(saved),
+      saved: saved
+    });
 
     return json({
       success: true,
@@ -60,15 +78,14 @@ export async function action({ request }) {
       shop,
     });
   } catch (error) {
-    console.error('[Banner Settings API] Action error:', error);
+    console.error('[Low Stock Settings API] Action error:', error);
     return json(
       {
         success: false,
-        error: error.message || 'Failed to save banner settings',
+        error: error.message || 'Failed to save low stock settings',
       },
       { status: 500 },
     );
   }
 }
-
 

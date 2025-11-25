@@ -50,4 +50,42 @@ export async function saveBannerSettings(shop, settings) {
   return document.settings;
 }
 
+export async function getBannerEnabled(shop) {
+  try {
+    const normalizedShop = normalizeShop(shop);
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    const existing = await collection.findOne({ shop: normalizedShop });
+    if (!existing) {
+      return false;
+    }
+
+    return existing.enabled !== undefined ? existing.enabled : true; // Default to true if not set
+  } catch (error) {
+    console.error('[Banner Settings Repo] Error getting enabled state:', error);
+    return false;
+  }
+}
+
+export async function setBannerEnabled(shop, enabled) {
+  try {
+    const normalizedShop = normalizeShop(shop);
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    await collection.updateOne(
+      { shop: normalizedShop },
+      { $set: { enabled: enabled, updatedAt: new Date() } },
+      { upsert: true }
+    );
+
+    return true;
+  } catch (error) {
+    console.error('[Banner Settings Repo] Error setting enabled state:', error);
+    throw error;
+  }
+}
 

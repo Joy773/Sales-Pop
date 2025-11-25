@@ -9,12 +9,6 @@ export async function loader({ request }) {
   try {
     const { session } = await authenticate.admin(request);
     const settings = await getCartCountdownSettings(session.shop);
-    console.log(
-      "[Cart Countdown Settings API][loader] Returning settings for shop:",
-      session.shop,
-      "keys:",
-      Object.keys(settings || {})
-    );
     return json({ success: true, settings });
   } catch (error) {
     console.error('[Cart Countdown Settings API] Loader error:', error);
@@ -30,15 +24,8 @@ export async function loader({ request }) {
 
 export async function action({ request }) {
   try {
-    console.log('[Cart Countdown Settings API][action] Request received:', {
-      method: request.method,
-      url: request.url,
-      headers: Object.fromEntries(request.headers.entries()),
-    });
-
     const { session } = await authenticate.admin(request);
     const shop = session.shop;
-    console.log('[Cart Countdown Settings API][action] Authenticated shop:', shop);
 
     const contentType = request.headers.get('content-type') || '';
     let payload;
@@ -52,14 +39,9 @@ export async function action({ request }) {
         typeof settingsField === 'string'
           ? JSON.parse(settingsField)
           : settingsField;
-      console.log(
-        '[Cart Countdown Settings API][action] Parsed settings from form data fields:',
-        Array.from(formData.keys())
-      );
     }
 
     if (!payload || typeof payload !== 'object') {
-      console.warn('[Cart Countdown Settings API][action] Invalid payload:', payload);
       return json(
         {
           success: false,
@@ -70,12 +52,7 @@ export async function action({ request }) {
     }
 
     const settings = payload.settings || payload;
-    console.log(
-      '[Cart Countdown Settings API][action] Saving settings keys:',
-      Object.keys(settings || {})
-    );
     const saved = await saveCartCountdownSettings(shop, settings);
-    console.log('[Cart Countdown Settings API][action] Save complete for shop:', shop);
 
     return json({
       success: true,

@@ -116,7 +116,12 @@ export default function CartCountdown() {
 
   return (
     <>
-      <Savebar onSave={handleSave} onDiscard={handleDiscard} isDirty={isDirty} />
+      <Savebar 
+        onSave={handleSave} 
+        onDiscard={handleDiscard} 
+        isDirty={isDirty} 
+        isLoading={fetcher.state === 'submitting' || fetcher.state === 'loading'} 
+      />
       {notification && (
         <div
           style={{

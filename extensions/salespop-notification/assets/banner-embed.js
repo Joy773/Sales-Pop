@@ -286,6 +286,11 @@
       if (!payload.success) {
         throw new Error(payload.error || 'Failed to load settings');
       }
+      // Check if campaign is disabled
+      if (payload.enabled === false) {
+        console.log('[Banner Embed] Campaign is disabled');
+        return null;
+      }
       return payload.settings;
     } catch (error) {
       console.error('[Banner Embed] Failed to fetch settings:', error);
@@ -305,13 +310,13 @@
     const template = TEMPLATE_MAP[templateId] || TEMPLATE_MAP['template-1'];
     const layout = styles.popoutLayout?.[0] || 'image-left';
     const popupSelection = goal.popupSelection?.[0];
-    const subscriptionType = goal.subscriptionType?.[0] || 'email';
+    // Always use email (phone support removed)
+    const subscriptionType = 'email';
     const shouldShowContactInput =
       popupSelection === 'collect-email' || popupSelection === 'subscribe-discount';
-    const contactInputType = subscriptionType === 'phone' ? 'tel' : 'email';
-    const contactPlaceholder =
-      goal.emailLabel ||
-      (subscriptionType === 'phone' ? 'Your phone number' : 'Your email address');
+    const contactInputType = 'email'; // Always email input type
+    // Always use 'Your email' - phone support completely removed
+    const contactPlaceholder = 'Your email';
     const discountCode = (goal.discountCode || '').trim();
     const backgroundImageUrl = (styles.backgroundImageUrl || '').trim();
     const imageUrl = backgroundImageUrl || DEFAULT_IMAGE;
@@ -418,10 +423,7 @@
     const errorMessage =
       goal.errorMessage || 'Something went wrong. Please try again.';
     const validationMessage =
-      goal.validationMessage ||
-      (contactInputType === 'tel'
-        ? 'Please enter a valid phone number.'
-        : 'Please enter a valid email address.');
+      goal.validationMessage || 'Please enter a valid email address.';
 
     const ctaButtonStyle = `
       background-color: ${template.cta};
@@ -453,7 +455,7 @@
               <input
                 type="${contactInputType}"
                 name="contact"
-                autocomplete="${contactInputType === 'tel' ? 'tel' : 'email'}"
+                autocomplete="email"
                 placeholder="${contactPlaceholder}"
                 required
                 style="
@@ -721,7 +723,8 @@
           feedback.style.display = 'none';
 
           try {
-            const result = await submitContact(value, subscriptionType, settings);
+            // Always send as email subscription (phone support removed)
+            const result = await submitContact(value, 'email', settings);
 
             const message =
               result?.successMessage || successMessage;
@@ -751,9 +754,96 @@
     }
   }
 
+  function shouldShowBanner(settings) {
+    if (!settings || !settings.goal) {
+      return true; // Default: show on all pages if no settings
+    }
+
+    const displayOnPage = settings.goal.displayOnPage || 'all-page';
+    const currentPath = window.location.pathname;
+
+    // Normalize paths (remove trailing slashes for comparison)
+    const normalizePath = (path) => {
+      if (!path) return '';
+      // If it's a full URL, extract the pathname
+      try {
+        // Check if it's a full URL (starts with http:// or https://)
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          const url = new URL(path);
+          path = url.pathname;
+        }
+        // If it doesn't start with /, add it
+        if (path && !path.startsWith('/')) {
+          path = '/' + path;
+        }
+      } catch (e) {
+        // If URL parsing fails, treat it as a path
+        if (path && !path.startsWith('/')) {
+          path = '/' + path;
+        }
+      }
+      // Remove trailing slashes (except for root)
+      return path === '/' ? '/' : path.replace(/\/$/, '');
+    };
+
+    const normalizedCurrentPath = normalizePath(currentPath);
+
+    console.log('[Banner Embed] Display check:', {
+      displayOnPage,
+      currentPath,
+      normalizedCurrentPath,
+      specificPageUrl: settings.goal.specificPageUrl,
+    });
+
+    if (displayOnPage === 'homepage') {
+      // Show only on homepage
+      const shouldShow = normalizedCurrentPath === '/' || normalizedCurrentPath === '/index';
+      console.log('[Banner Embed] Homepage check:', shouldShow);
+      return shouldShow;
+    } else if (displayOnPage === 'specific-page') {
+      // Show only on the specific page URL
+      const specificPageUrl = (settings.goal.specificPageUrl || '').trim();
+      if (!specificPageUrl) {
+        console.log('[Banner Embed] Specific page: No URL specified');
+        return false; // No URL specified, don't show
+      }
+      const normalizedSpecificPath = normalizePath(specificPageUrl);
+      const shouldShow = normalizedCurrentPath === normalizedSpecificPath;
+      console.log('[Banner Embed] Specific page check:', {
+        specificPageUrl,
+        normalizedSpecificPath,
+        normalizedCurrentPath,
+        shouldShow,
+      });
+      return shouldShow;
+    } else if (displayOnPage === 'all-page') {
+      // Show on all pages
+      console.log('[Banner Embed] All pages: showing');
+      return true;
+    }
+
+    // Default: show on all pages
+    return true;
+  }
+
   async function init() {
     const root = ensureRoot();
     const settings = await fetchSettings();
+    
+    // If settings is null, campaign is disabled
+    if (!settings) {
+      console.log('[Banner Embed] Campaign is disabled, not rendering banner');
+      root.innerHTML = '';
+      return;
+    }
+    
+    // Check if banner should be shown on this page
+    if (!shouldShowBanner(settings)) {
+      console.log('[Banner Embed] Banner not shown on this page based on displayOnPage setting');
+      root.innerHTML = '';
+      return;
+    }
+    
     render(root, settings);
   }
 

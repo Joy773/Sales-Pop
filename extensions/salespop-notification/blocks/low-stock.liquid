@@ -1,0 +1,201 @@
+{% comment %}
+  Low Stock Alert App Block
+  Displays low stock alerts on product pages when inventory is running low.
+{% endcomment %}
+
+<meta name="shop" content="{{ shop.permanent_domain }}">
+<script>
+  window.SalesPopLowStockShop = "{{ shop.permanent_domain }}";
+  {% if shop.metafields.app_salespop.app_url %}
+    window.SalesPopLowStockAppUrl = "{{ shop.metafields.app_salespop.app_url }}";
+  {% else %}
+    window.SalesPopLowStockAppUrl = "https://indication-britannica-ranges-benchmark.trycloudflare.com";
+  {% endif %}
+  console.log('Low Stock Alert: Shop domain =', window.SalesPopLowStockShop);
+  console.log('Low Stock Alert: App URL =', window.SalesPopLowStockAppUrl);
+</script>
+<meta name="salespop-app-url" content="https://indication-britannica-ranges-benchmark.trycloudflare.com">
+
+<div id="salespop-low-stock-alert-container" style="display: none;">
+  <div class="salespop-low-stock-alert">
+    <button class="salespop-low-stock-close" id="salespop-low-stock-close" aria-label="Close alert" style="display: none;">
+      ×
+    </button>
+    <div class="salespop-low-stock-content">
+      <span class="salespop-low-stock-icon" id="salespop-low-stock-icon"></span>
+      <span class="salespop-low-stock-message" id="salespop-low-stock-message"></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .salespop-low-stock-alert {
+    position: fixed;
+    border: 2px dashed #e1e3e5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    display: inline-flex;
+    align-items: center;
+    max-width: 400px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .salespop-low-stock-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .salespop-low-stock-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .salespop-low-stock-icon svg {
+    width: 100%;
+    height: 100%;
+    color: #d72c0d;
+  }
+
+  .salespop-low-stock-message {
+    font-weight: bold;
+    line-height: 1.4;
+  }
+
+  .salespop-low-stock-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s ease;
+    z-index: 10;
+  }
+
+  .salespop-low-stock-close:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Position classes */
+  .salespop-low-stock-alert.position-top-left {
+    top: 20px;
+    left: 20px;
+  }
+
+  .salespop-low-stock-alert.position-top-right {
+    top: 20px;
+    right: 20px;
+  }
+
+  .salespop-low-stock-alert.position-bottom-left {
+    bottom: 20px;
+    left: 20px;
+  }
+
+  .salespop-low-stock-alert.position-bottom-right {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  /* Animation classes */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .salespop-low-stock-alert.animation-fade {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  .salespop-low-stock-alert.animation-slide {
+    animation: slideIn 0.5s ease-out;
+  }
+
+  .salespop-low-stock-alert.animation-bounce {
+    animation: bounceIn 0.6s ease-out;
+  }
+
+  .salespop-low-stock-alert.animation-pulse {
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .salespop-low-stock-alert.animation-zoom {
+    animation: zoomIn 0.4s ease-out;
+  }
+
+  @media (max-width: 768px) {
+    .salespop-low-stock-alert {
+      max-width: 300px;
+      font-size: 12px;
+    }
+  }
+</style>
+
+<script src="{{ 'low-stock.js' | asset_url }}" defer onerror="console.error('Low Stock Alert: Failed to load script from asset_url')"></script>
+{%- comment -%}
+  Fallback: Load script from app URL if asset_url doesn't work
+{%- endcomment -%}
+<script>
+  setTimeout(function() {
+    if (!window.SalesPopLowStockInitialized && window.SalesPopLowStockAppUrl) {
+      console.warn('Low Stock Alert: Script may not have loaded via asset_url, trying app URL...');
+      const script = document.createElement('script');
+      script.src = window.SalesPopLowStockAppUrl + '/extensions/salespop-notification/assets/low-stock.js';
+      script.defer = true;
+      script.onerror = function() {
+        console.error('Low Stock Alert: Failed to load script from app URL:', script.src);
+      };
+      script.onload = function() {
+        console.log('Low Stock Alert: Script loaded from app URL');
+      };
+      document.head.appendChild(script);
+    }
+  }, 500);
+</script>
+
+{% schema %}
+{
+  "name": "Low Stock Alert",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}
+

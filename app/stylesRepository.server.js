@@ -13,11 +13,6 @@ export async function saveSalesPopStyles(shop, styles) {
   try {
     // Normalize shop domain to ensure consistency
     const normalizedShop = shop.trim().toLowerCase();
-    console.log(`[Styles Repo] Attempting to save styles for shop: "${shop}" (normalized: "${normalizedShop}")`);
-    console.log(`[Styles Repo] Styles object has ${Object.keys(styles).length} keys`);
-    
-    // Ensure MongoDB connection is ready with timeout
-    console.log(`[Styles Repo] Waiting for MongoDB connection...`);
     let client;
     try {
       client = await Promise.race([
@@ -26,7 +21,6 @@ export async function saveSalesPopStyles(shop, styles) {
           setTimeout(() => reject(new Error('MongoDB connection timeout after 10 seconds')), 10000)
         )
       ]);
-      console.log(`[Styles Repo] ✓ MongoDB client connected`);
     } catch (connError) {
       console.error(`[Styles Repo] ✗ MongoDB connection failed:`, connError);
       throw new Error(`Failed to connect to MongoDB: ${connError.message}`);
@@ -35,7 +29,6 @@ export async function saveSalesPopStyles(shop, styles) {
     // Test connection by pinging the database
     try {
       await client.db('admin').admin().ping();
-      console.log(`[Styles Repo] ✓ MongoDB ping successful`);
     } catch (pingError) {
       console.error(`[Styles Repo] ✗ MongoDB ping failed:`, pingError);
       throw new Error(`MongoDB connection is not healthy: ${pingError.message}`);
@@ -44,8 +37,6 @@ export async function saveSalesPopStyles(shop, styles) {
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION_NAME);
 
-    console.log(`[Styles Repo] Using database: ${DB_NAME}, collection: ${COLLECTION_NAME}`);
-    
     // Validate styles object before saving
     if (typeof styles !== 'object' || styles === null) {
       throw new Error('Styles must be an object');
@@ -58,31 +49,12 @@ export async function saveSalesPopStyles(shop, styles) {
       throw new Error(`Styles object cannot be serialized: ${serializeError.message}`);
     }
     
-    console.log(`[Styles Repo] Attempting to save/update document for shop: "${normalizedShop}"`);
-    console.log(`[Styles Repo] Styles object preview:`, {
-      keys: Object.keys(styles).slice(0, 10),
-      totalKeys: Object.keys(styles).length,
-      sampleValues: {
-        backgroundColor: styles.backgroundColor,
-        textColor: styles.textColor,
-        messageTemplate: styles.messageTemplate
-      }
-    });
-    
     // Prepare document to save
     const documentToSave = {
       shop: normalizedShop,
       styles: styles,
       updatedAt: new Date()
     };
-    
-    console.log(`[Styles Repo] Document to save structure:`, {
-      hasShop: !!documentToSave.shop,
-      shopValue: documentToSave.shop,
-      hasStyles: !!documentToSave.styles,
-      stylesKeys: documentToSave.styles ? Object.keys(documentToSave.styles).length : 0,
-      hasUpdatedAt: !!documentToSave.updatedAt
-    });
     
     // Use replaceOne with upsert for more reliable behavior
     // Save with normalized shop domain for consistency
@@ -95,7 +67,6 @@ export async function saveSalesPopStyles(shop, styles) {
           upsert: true
         }
       );
-      console.log(`[Styles Repo] ✓ replaceOne operation completed`);
     } catch (replaceError) {
       console.error(`[Styles Repo] ✗ replaceOne operation failed:`, replaceError);
       console.error(`[Styles Repo] Error details:`, {
@@ -107,19 +78,10 @@ export async function saveSalesPopStyles(shop, styles) {
       throw new Error(`Failed to save document: ${replaceError.message}`);
     }
 
-    console.log(`[Styles Repo] Update result:`, {
-      matchedCount: updateResult.matchedCount,
-      modifiedCount: updateResult.modifiedCount,
-      upsertedCount: updateResult.upsertedCount,
-      upsertedId: updateResult.upsertedId ? updateResult.upsertedId.toString() : null,
-      acknowledged: updateResult.acknowledged
-    });
-
     // Verify the document was saved by reading it back
     let savedDoc;
     try {
       savedDoc = await collection.findOne({ shop: normalizedShop });
-      console.log(`[Styles Repo] Verification query result:`, savedDoc ? 'Found' : 'Not found');
     } catch (findError) {
       console.error(`[Styles Repo] ✗ Verification query failed:`, findError);
       // Don't throw here - the save might have succeeded even if the read fails
@@ -127,7 +89,7 @@ export async function saveSalesPopStyles(shop, styles) {
     
     if (!savedDoc) {
       // Try to find with different variations
-      console.warn(`[Styles Repo] ⚠️ Document not found with exact match, trying variations...`);
+      console.error(`[Styles Repo] ⚠️ Document not found with exact match, trying variations...`);
       const variations = [
         shop, // Original shop (not normalized)
         shop.trim(), // Trimmed original
@@ -138,7 +100,6 @@ export async function saveSalesPopStyles(shop, styles) {
         if (variation === normalizedShop) continue; // Already tried
         const found = await collection.findOne({ shop: variation });
         if (found) {
-          console.log(`[Styles Repo] ✓ Found document with variation: "${variation}"`);
           savedDoc = found;
           break;
         }
@@ -153,13 +114,9 @@ export async function saveSalesPopStyles(shop, styles) {
         
         // Check if upsert actually created a document
         if (updateResult.upsertedCount > 0 && updateResult.upsertedId) {
-          console.log(`[Styles Repo] Upsert created document with ID: ${updateResult.upsertedId}`);
           // Try to find by _id
           try {
             savedDoc = await collection.findOne({ _id: updateResult.upsertedId });
-            if (savedDoc) {
-              console.log(`[Styles Repo] ✓ Found document by _id`);
-            }
           } catch (idError) {
             console.error(`[Styles Repo] ✗ Could not find by _id:`, idError);
           }
@@ -175,10 +132,6 @@ export async function saveSalesPopStyles(shop, styles) {
       }
     }
 
-    console.log(`[Styles Repo] ✓ Styles saved successfully for shop: "${normalizedShop}"`);
-    console.log(`[Styles Repo] Saved document ID: ${savedDoc._id}`);
-    console.log(`[Styles Repo] Saved shop domain in DB: "${savedDoc.shop}"`);
-    console.log(`[Styles Repo] Saved styles count: ${savedDoc.styles ? Object.keys(savedDoc.styles).length : 0}`);
     return savedDoc;
   } catch (error) {
     console.error(`[Styles Repo] ✗ Error saving styles for ${shop}:`, error);
@@ -215,7 +168,6 @@ export async function getSalesPopStyles(shop) {
   try {
     // Normalize shop domain to match how it's saved
     const normalizedShop = shop.trim().toLowerCase();
-    console.log(`[Styles Repo] Fetching styles for shop: "${shop}" (normalized: "${normalizedShop}")`);
     
     const client = await clientPromise;
     const db = client.db(DB_NAME);
@@ -225,21 +177,10 @@ export async function getSalesPopStyles(shop) {
     let result = await collection.findOne({ shop: normalizedShop });
     
     if (result) {
-      console.log(`[Styles Repo] ✓ Found styles document for shop: "${normalizedShop}"`);
-      console.log(`[Styles Repo] Document has ${result.styles ? Object.keys(result.styles).length : 0} style properties`);
-      
       if (result.styles && typeof result.styles === 'object') {
-        // Log sample of what we're returning
-        console.log(`[Styles Repo] Sample style values:`, {
-          backgroundColor: result.styles.backgroundColor,
-          textColor: result.styles.textColor,
-          messageTemplate: result.styles.messageTemplate,
-          selectedOrderType: result.styles.selectedOrderType,
-          lookbackDays: result.styles.lookbackDays
-        });
         return result.styles;
       } else {
-        console.warn(`[Styles Repo] ⚠️ Styles document found but styles property is invalid:`, typeof result.styles);
+        console.error(`[Styles Repo] ⚠️ Styles document found but styles property is invalid:`, typeof result.styles);
         return null;
       }
     }
@@ -247,23 +188,21 @@ export async function getSalesPopStyles(shop) {
     // Fallback: try exact match (in case old data exists)
     result = await collection.findOne({ shop });
     if (result) {
-      console.log(`[Styles Repo] ✓ Found styles with exact match (not normalized): "${shop}"`);
-      console.log(`[Styles Repo] Consider normalizing shop domain in database`);
       return result.styles || null;
     }
     
     // If not found, try to find all documents to debug shop domain format
-    console.log(`[Styles Repo] ✗ No styles found for shop: "${shop}" (normalized: "${normalizedShop}")`);
+    console.error(`[Styles Repo] ✗ No styles found for shop: "${shop}" (normalized: "${normalizedShop}")`);
     const allDocs = await collection.find({}).limit(5).toArray();
     if (allDocs.length > 0) {
-      console.log(`[Styles Repo] Available shop domains in database:`, allDocs.map(doc => `"${doc.shop}"`));
-      console.log(`[Styles Repo] Looking for shop: "${normalizedShop}"`);
-      console.log(`[Styles Repo] Shop domain match check:`, {
+      console.error(`[Styles Repo] Available shop domains in database:`, allDocs.map(doc => `"${doc.shop}"`));
+      console.error(`[Styles Repo] Looking for shop: "${normalizedShop}"`);
+      console.error(`[Styles Repo] Shop domain match check:`, {
         exact: allDocs.some(doc => doc.shop === normalizedShop),
         original: allDocs.some(doc => doc.shop === shop)
       });
     } else {
-      console.log(`[Styles Repo] No documents found in collection at all`);
+      console.error(`[Styles Repo] No documents found in collection at all`);
     }
     
     return null;
@@ -299,5 +238,44 @@ export async function hasSalesPopStyles(shop) {
 
   const count = await collection.countDocuments({ shop });
   return count > 0;
+}
+
+export async function getSalesPopEnabled(shop) {
+  try {
+    const normalizedShop = shop.trim().toLowerCase();
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    const existing = await collection.findOne({ shop: normalizedShop });
+    if (!existing) {
+      return false;
+    }
+
+    return existing.enabled !== undefined ? existing.enabled : true; // Default to true if not set
+  } catch (error) {
+    console.error('[Styles Repo] Error getting enabled state:', error);
+    return false;
+  }
+}
+
+export async function setSalesPopEnabled(shop, enabled) {
+  try {
+    const normalizedShop = shop.trim().toLowerCase();
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    await collection.updateOne(
+      { shop: normalizedShop },
+      { $set: { enabled: enabled, updatedAt: new Date() } },
+      { upsert: true }
+    );
+
+    return true;
+  } catch (error) {
+    console.error('[Styles Repo] Error setting enabled state:', error);
+    throw error;
+  }
 }
 

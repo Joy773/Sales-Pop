@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { getCartCountdownSettings } from "../cartCountdownSettingsRepository.server";
+import { getCartCountdownSettings, getCartCountdownEnabled } from "../cartCountdownSettingsRepository.server";
 
 export async function loader({ request }) {
   try {
@@ -16,6 +16,23 @@ export async function loader({ request }) {
         }
       );
     }
+
+    // Check if campaign is enabled
+    const isEnabled = await getCartCountdownEnabled(shop);
+    if (!isEnabled) {
+      return json({ 
+        success: false,
+        enabled: false,
+        message: 'Campaign is disabled',
+        settings: {}
+      }, {
+        headers: {
+          "Cache-Control": "no-store",
+          "Access-Control-Allow-Origin": "*",
+        }
+      });
+    }
+
     const settings = await getCartCountdownSettings(shop);
     return json({ success: true, settings: settings || {} }, {
       headers: {

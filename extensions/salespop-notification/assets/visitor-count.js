@@ -337,8 +337,8 @@
     container.style.display = 'block';
 
     const { data, source } = await fetchVisitorData(shop, appUrl);
-    if (!data || !data.success) {
-      console.warn('[Visitor Count] No visitor data returned, hiding widget');
+    if (!data || !data.success || source === 'disabled') {
+      console.log('[Visitor Count] Campaign is disabled or no data returned, hiding widget');
       hideWidget();
       return;
     }

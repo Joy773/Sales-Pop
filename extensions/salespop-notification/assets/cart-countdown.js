@@ -7,6 +7,9 @@
   let countdownInterval = null;
   let remainingSeconds = 0;
   let settings = null;
+  let originalBodyPaddingTopStyle = null;
+  let originalBodyPaddingTopValue = null;
+  let appliedBodyPadding = 0;
 
   function normalizeShopDomain(shop) {
     if (!shop || typeof shop !== 'string') {
@@ -128,6 +131,48 @@
     document.head.appendChild(style);
   }
 
+  function captureBodyPaddingBaseline() {
+    if (originalBodyPaddingTopStyle !== null) {
+      return;
+    }
+    const body = document.body;
+    if (!body) {
+      return;
+    }
+    originalBodyPaddingTopStyle = body.style.paddingTop || '';
+    const computed = window.getComputedStyle(body).paddingTop;
+    originalBodyPaddingTopValue = parseFloat(computed) || 0;
+  }
+
+  function applyBodyPaddingOffset(offset) {
+    const body = document.body;
+    if (!body) {
+      return;
+    }
+    if (!offset || offset <= 0) {
+      resetBodyPaddingOffset();
+      return;
+    }
+    captureBodyPaddingBaseline();
+    if (originalBodyPaddingTopValue == null) {
+      originalBodyPaddingTopValue = 0;
+    }
+    appliedBodyPadding = offset;
+    body.style.paddingTop = `${originalBodyPaddingTopValue + offset}px`;
+  }
+
+  function resetBodyPaddingOffset() {
+    if (originalBodyPaddingTopStyle === null) {
+      return;
+    }
+    const body = document.body;
+    if (!body) {
+      return;
+    }
+    appliedBodyPadding = 0;
+    body.style.paddingTop = originalBodyPaddingTopStyle;
+  }
+
   function renderCountdownBar(settings) {
     ensureStyles();
     
@@ -152,12 +197,21 @@
         ${message}
       </div>
     `;
+
+    const bar = root.querySelector('.cart-countdown-bar');
+    const height = bar?.offsetHeight || root.offsetHeight || 0;
+    if (height > 0) {
+      applyBodyPaddingOffset(height);
+    }
   }
 
   function hideCountdownBar() {
     const root = document.getElementById(ROOT_ID);
     if (root) {
       root.remove();
+    }
+    if (appliedBodyPadding > 0) {
+      resetBodyPaddingOffset();
     }
   }
 
@@ -383,6 +437,11 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
+        // Check if campaign is disabled
+        if (data.enabled === false) {
+          console.log('[Cart Countdown] Campaign is disabled');
+          return null;
+        }
         if (data.success && data.settings) {
           console.log('[Cart Countdown] Settings loaded from public API:', data.settings);
           return data.settings;
@@ -406,7 +465,7 @@
     }
 
     if (!settings) {
-      console.warn('[Cart Countdown] No settings available');
+      console.warn('[Cart Countdown] No settings available or campaign is disabled');
       return;
     }
 
@@ -462,7 +521,14 @@
   }
 
   // Initialize when DOM is ready
-  function initialize() {
+  async function initialize() {
+    // Check if campaign is enabled before initializing
+    const fetchedSettings = await fetchSettings();
+    if (!fetchedSettings) {
+      console.log('[Cart Countdown] Campaign is disabled, skipping initialization');
+      return;
+    }
+    settings = fetchedSettings;
     setupEventListeners();
     // Try to restore countdown from sessionStorage
     restoreCountdown();

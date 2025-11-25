@@ -148,3 +148,42 @@ export async function getVisitorCountSettings(shop) {
   }
 }
 
+export async function getVisitorCountEnabled(shop) {
+  try {
+    const normalizedShop = shop.trim().toLowerCase();
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    const existing = await collection.findOne({ shop: normalizedShop });
+    if (!existing) {
+      return false;
+    }
+
+    return existing.enabled !== undefined ? existing.enabled : true; // Default to true if not set
+  } catch (error) {
+    console.error('[Visitor Settings Repo] Error getting enabled state:', error);
+    return false;
+  }
+}
+
+export async function setVisitorCountEnabled(shop, enabled) {
+  try {
+    const normalizedShop = shop.trim().toLowerCase();
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    await collection.updateOne(
+      { shop: normalizedShop },
+      { $set: { enabled: enabled, updatedAt: new Date() } },
+      { upsert: true }
+    );
+
+    return true;
+  } catch (error) {
+    console.error('[Visitor Settings Repo] Error setting enabled state:', error);
+    throw error;
+  }
+}
+

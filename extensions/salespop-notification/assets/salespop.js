@@ -259,6 +259,12 @@
 
           const data = JSON.parse(responseText);
           
+          // Check if campaign is disabled
+          if (data.enabled === false) {
+            console.log('Sales Pop: Campaign is disabled (App Proxy)');
+            return null;
+          }
+          
           if (data.success) {
             console.log('Sales Pop: ✓ Success from App Proxy');
             console.log('Sales Pop: App Proxy styles received:', {
@@ -363,6 +369,12 @@
         console.error('Sales Pop: Response text that failed to parse:', responseText);
         throw new Error(`Failed to parse JSON: ${parseError.message}`);
       }
+      // Check if campaign is disabled
+      if (data.enabled === false) {
+        console.log('Sales Pop: Campaign is disabled');
+        return null;
+      }
+
       console.log('Sales Pop: API Response received:', {
         success: data.success,
         hasStyles: !!data.styles,
@@ -874,7 +886,18 @@
     const combinedData = await fetchCombinedData(shop);
     
     if (!combinedData) {
-      console.error('Sales Pop: Failed to fetch combined data');
+      console.log('Sales Pop: Campaign is disabled or failed to fetch data, not showing notifications');
+      return;
+    }
+    
+    // Legacy check - if combinedData is null but we got here, it means campaign is disabled
+    if (combinedData === null) {
+      console.log('Sales Pop: Campaign is disabled');
+      return;
+    }
+    
+    // Old fallback code removed - don't show anything if data fetch fails
+    if (false) {
       // Use fallback data
       const fallbackData = {
         styles: CONFIG.defaultStyles,
