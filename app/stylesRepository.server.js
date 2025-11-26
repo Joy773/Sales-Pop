@@ -36,7 +36,7 @@ export async function saveSalesPopStyles(shop, styles) {
     
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION_NAME);
-
+    
     // Validate styles object before saving
     if (typeof styles !== 'object' || styles === null) {
       throw new Error('Styles must be an object');

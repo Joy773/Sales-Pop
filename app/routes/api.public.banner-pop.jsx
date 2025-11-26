@@ -39,9 +39,9 @@ export async function loader({ request }) {
   } catch (error) {
     console.error("[BannerPop Public API] Failed to load settings:", error);
     return json({
-      success: false,
-      error: error.message || "Failed to load banner settings",
-      settings: applyBannerSettingsDefaults(),
+        success: false,
+        error: error.message || "Failed to load banner settings",
+        settings: applyBannerSettingsDefaults(),
     }, {
       status: 500,
       headers: {

@@ -445,7 +445,7 @@
             gap: 12px;
             width: 100%;
             max-width: 360px;
-          ">
+            ">
             <div style="
               display: flex;
               flex-wrap: wrap;
@@ -613,8 +613,8 @@
                 font-weight: 700;
                 line-height: 1.2;
               ">
-                ${goal.popupTitle || 'Welcome to our store'}
-              </h3>
+            ${goal.popupTitle || 'Welcome to our store'}
+          </h3>
               <p style="
                 margin: 0;
                 font-size: 16px;
@@ -626,9 +626,9 @@
                   goal.popupDescription ||
                   'Share a short message to encourage shoppers to subscribe.'
                 }
-              </p>
+          </p>
               ${formMarkup}
-              ${discountMarkup}
+          ${discountMarkup}
               ${buttonMarkup}
               ${countdownMarkup}
             </div>

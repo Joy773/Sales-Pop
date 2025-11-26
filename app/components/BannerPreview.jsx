@@ -10,9 +10,11 @@ export default function BannerPreview({settings}) {
     goal = {},
     styles = {},
     countdown = {},
+    layouts = {},
   } = settings || {};
   const template = getTemplateById(styles.selectedTemplate);
   const layout = styles.popoutLayout?.[0] || 'image-left';
+  const selectedLayout = layouts?.selectedLayout;
   const backgroundImageUrl = (styles.backgroundImageUrl ?? '').trim();
   const imageUrl = backgroundImageUrl || DEFAULT_IMAGE;
 
@@ -275,23 +277,23 @@ export default function BannerPreview({settings}) {
       )}
       {(popupSelection === 'collect-email' ||
         popupSelection === 'subscribe-discount') && (
-        <button
-          type="button"
-          style={{
-            alignSelf: 'flex-start',
-            backgroundColor: template.preview.cta,
-            border: 'none',
-            borderRadius: '999px',
-            padding: '12px 28px',
-            color: '#FFFFFF',
-            fontWeight: 600,
-            fontSize: '15px',
-            cursor: 'pointer',
-            boxShadow: '0 12px 24px rgba(16, 185, 129, 0.25)',
-          }}
-        >
-          {buttonLabel}
-        </button>
+      <button
+        type="button"
+        style={{
+          alignSelf: 'flex-start',
+          backgroundColor: template.preview.cta,
+          border: 'none',
+          borderRadius: '999px',
+          padding: '12px 28px',
+          color: '#FFFFFF',
+          fontWeight: 600,
+          fontSize: '15px',
+          cursor: 'pointer',
+          boxShadow: '0 12px 24px rgba(16, 185, 129, 0.25)',
+        }}
+      >
+        {buttonLabel}
+      </button>
       )}
       {countdownContent}
     </div>
@@ -319,6 +321,197 @@ export default function BannerPreview({settings}) {
       />
     </div>
   );
+
+  // Render Layout 1 if selected - simply display the image
+  if (selectedLayout === 'layout-1') {
+    return (
+      <Card>
+        <BlockStack gap="400" padding="400">
+          <Text as="h2" variant="headingMd">
+            Preview Section
+          </Text>
+          <div
+            style={{
+              minHeight: '420px',
+              backgroundColor: 'var(--p-color-bg-surface-secondary)',
+              borderRadius: 'var(--p-border-radius-200)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              overflow: 'hidden',
+              width: '100%',
+            }}
+          >
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '880px',
+                height: '750px',
+                borderRadius: '20px',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              <img
+                src="/Layout_One.png"
+                alt="Layout 1"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+              />
+              {layouts?.title1 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: 'serif',
+                    color: '#FFFFFF', // White color
+                    fontSize: `${layouts?.titleSize || '20'}px`,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    width: '100%',
+                    padding: '0 24px',
+                  }}
+                >
+                  {layouts.title1}
+                </div>
+              )}
+              {layouts?.discountPercentage && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '145px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: 'serif',
+                    color: '#FFFFFF',
+                    fontSize: '72px',
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    lineHeight: 1,
+                    width: '100%',
+                    padding: '0 24px',
+                  }}
+                >
+                  {layouts.discountPercentage}
+                </div>
+              )}
+              {layouts?.description && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '220px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    color: '#F9E3D7',
+                    fontSize: `${layouts?.titleSize || '18'}px`,
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    width: '100%',
+                    padding: '0 24px',
+                    maxWidth: '600px',
+                    wordWrap: 'break-word',
+                  }}
+                >
+                  {layouts.description}
+                </div>
+              )}
+              {layouts?.buttonText && (
+                <button
+                  type="button"
+                  style={{
+                    position: 'absolute',
+                    top: '340px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#D4A574', // Dusty pink/mauve matching Kitsch button
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '14px 24px',
+                    fontFamily: 'sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {layouts.buttonText}
+                  <span style={{ fontSize: '18px' }}>→</span>
+                </button>
+              )}
+              {layouts?.imageUrl && (
+                <img
+                  src={layouts.imageUrl}
+                  alt="Product"
+                  style={{
+                    position: 'absolute',
+                    bottom: '100px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    maxWidth: '400px',
+                    maxHeight: '300px',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    zIndex: 2,
+                    borderRadius: '8px',
+                  }}
+                />
+              )}
+              {layouts?.disclaimer && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '40px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    color: '#2B1A11',
+                    fontSize: '14px',
+                    lineHeight: 1.4,
+                    width: '90%',
+                    maxWidth: '640px',
+                    opacity: 0.9,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color: '#2B1A11',
+                      marginRight: '6px',
+                    }}
+                  >
+                    Disclaimer:
+                  </span>
+                  <span style={{ fontWeight: 400 }}>{layouts.disclaimer}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </BlockStack>
+      </Card>
+    );
+  }
 
   return (
     <Card>

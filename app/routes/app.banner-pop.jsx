@@ -7,7 +7,10 @@ import BannerPreview from "../components/BannerPreview";
 import Savebar from "../components/Savebar";
 import { authenticate } from "../shopify.server";
 import { getBannerSettings } from "../bannerSettingsRepository.server";
-import { applyBannerSettingsDefaults } from "../utils/bannerSettingsDefaults.js";
+import {
+  applyBannerSettingsDefaults,
+  DEFAULT_BANNER_SETTINGS,
+} from "../utils/bannerSettingsDefaults.js";
 
 export const loader = async ({ request }) => {
   try {
@@ -105,8 +108,12 @@ export default function BannerPop() {
 
   const handleSave = useCallback(() => {
     try {
+      const payload = applyBannerSettingsDefaults(settings);
+      if (!payload.behavior) {
+        payload.behavior = DEFAULT_BANNER_SETTINGS.behavior;
+      }
       const formData = new FormData();
-      formData.append("settings", JSON.stringify(settings));
+      formData.append("settings", JSON.stringify(payload));
       fetcher.submit(formData, {
         method: "POST",
         action: "/api/banner-pop/settings",

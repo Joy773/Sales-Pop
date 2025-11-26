@@ -238,7 +238,7 @@ export default function Campaigns() {
   const handleCreateClick = (link) => {
     console.log('[Campaigns] Navigating to:', link);
     try {
-      navigate(link);
+    navigate(link);
     } catch (error) {
       console.error('[Campaigns] Navigation error:', error);
       // Fallback to window.location

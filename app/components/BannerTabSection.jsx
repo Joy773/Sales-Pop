@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
   Box,
   Card,
@@ -12,15 +12,24 @@ import {
 } from '@shopify/polaris';
 import {BANNER_TEMPLATES} from './bannerTemplates';
 
-const tabs = [
+const BASE_TABS = [
   {id: 'goal', content: 'Goal', panelID: 'goal-content'},
   {id: 'styles', content: 'Styles', panelID: 'styles-content'},
-  {id: 'behavior', content: 'Behavior', panelID: 'behavior-content'},
+  {id: 'layouts', content: 'Layouts', panelID: 'layouts-content'},
 ];
 
 export default function BannerTabSection({settings, onSettingsChange}) {
   const [selectedTab, setSelectedTab] = useState(0);
-  const {goal, countdown, styles, behavior} = settings;
+  const {goal, countdown, styles, layouts} = settings;
+  const isLayoutOne = layouts?.selectedLayout === 'layout-1';
+  const tabs = BASE_TABS.map((tab) => {
+    if (!isLayoutOne) return tab;
+    if (tab.id === 'goal' || tab.id === 'styles') {
+      return {...tab, disabled: true};
+    }
+    return tab;
+  });
+  const firstEnabledTabIndex = tabs.findIndex((tab) => !tab.disabled);
 
   const updateGoal = (field, value) =>
     onSettingsChange((prev) => ({
@@ -40,13 +49,24 @@ export default function BannerTabSection({settings, onSettingsChange}) {
       styles: {...prev.styles, [field]: value},
     }));
 
-  const updateBehavior = (field, value) =>
+  const updateLayouts = (field, value) =>
     onSettingsChange((prev) => ({
       ...prev,
-      behavior: {...prev.behavior, [field]: value},
+      layouts: {...prev.layouts, [field]: value},
     }));
 
-  const handleTabChange = (selectedIndex) => setSelectedTab(selectedIndex);
+  const handleTabChange = (selectedIndex) => {
+    if (tabs[selectedIndex]?.disabled) {
+      return;
+    }
+    setSelectedTab(selectedIndex);
+  };
+
+  useEffect(() => {
+    if (tabs[selectedTab]?.disabled && firstEnabledTabIndex !== -1) {
+      setSelectedTab(firstEnabledTabIndex);
+    }
+  }, [tabs, selectedTab, firstEnabledTabIndex]);
 
   const handleSubscriptionTypeChange = (value) => {
     onSettingsChange((prev) => {
@@ -180,15 +200,15 @@ export default function BannerTabSection({settings, onSettingsChange}) {
 
         {(goal.popupSelection[0] === 'collect-email' ||
           goal.popupSelection[0] === 'subscribe-discount') && (
-          <Box paddingBlockStart="200">
-            <TextField
-              label="Button text"
-              value={goal.buttonText}
-              onChange={(value) => updateGoal('buttonText', value)}
-              placeholder="Add button text"
-              autoComplete="off"
-            />
-          </Box>
+        <Box paddingBlockStart="200">
+          <TextField
+            label="Button text"
+            value={goal.buttonText}
+            onChange={(value) => updateGoal('buttonText', value)}
+            placeholder="Add button text"
+            autoComplete="off"
+          />
+        </Box>
         )}
 
         <TextField
@@ -203,105 +223,105 @@ export default function BannerTabSection({settings, onSettingsChange}) {
         {goal.popupSelection[0] !== 'announcement' &&
           goal.popupSelection[0] !== 'collect-email' && (
           <>
-            <Box className="pt-2">
-              <Checkbox
-                label="Enable countdown"
-                checked={countdown.isCountdownEnabled}
-                onChange={(checked) => updateCountdown('isCountdownEnabled', checked)}
+        <Box className="pt-2">
+          <Checkbox
+            label="Enable countdown"
+            checked={countdown.isCountdownEnabled}
+            onChange={(checked) => updateCountdown('isCountdownEnabled', checked)}
+          />
+        </Box>
+
+        {countdown.isCountdownEnabled && (
+          <Box className="flex flex-col gap-4 pl-2">
+            <ChoiceList
+              title="Choose countdown type"
+              selected={countdown.countdownType}
+              choices={[
+                {label: 'Specific end date', value: 'specific-end-date'},
+                {label: 'Loop interval', value: 'loop-interval'},
+              ]}
+              onChange={(value) => updateCountdown('countdownType', value)}
+            />
+
+            <FormLayout>
+              {countdown.countdownType[0] === 'specific-end-date' && (
+                <FormLayout.Group>
+                  <TextField
+                    type="date"
+                    label="Countdown end date"
+                    value={countdown.countdownEndDate}
+                    onChange={(value) =>
+                      updateCountdown('countdownEndDate', value)
+                    }
+                  />
+                </FormLayout.Group>
+              )}
+
+              {countdown.countdownType[0] === 'loop-interval' && (
+                <FormLayout.Group>
+                  <TextField
+                    type="number"
+                    min={0}
+                    label="Days"
+                    value={countdown.loopIntervalDays}
+                    onChange={(value) =>
+                      updateCountdown('loopIntervalDays', value)
+                    }
+                    placeholder="0"
+                  />
+                  <TextField
+                    type="number"
+                    min={0}
+                    label="Hours"
+                    value={countdown.loopIntervalHours}
+                    onChange={(value) =>
+                      updateCountdown('loopIntervalHours', value)
+                    }
+                    placeholder="0"
+                  />
+                  <TextField
+                    type="number"
+                    min={0}
+                    label="Minutes"
+                    value={countdown.loopIntervalMinutes}
+                    onChange={(value) =>
+                      updateCountdown('loopIntervalMinutes', value)
+                    }
+                    placeholder="0"
+                  />
+                </FormLayout.Group>
+              )}
+
+              <TextField
+                label="Days label"
+                value={countdown.daysLabel}
+                onChange={(value) => updateCountdown('daysLabel', value)}
+                placeholder="Days"
+                autoComplete="off"
               />
-            </Box>
-
-            {countdown.isCountdownEnabled && (
-              <Box className="flex flex-col gap-4 pl-2">
-                <ChoiceList
-                  title="Choose countdown type"
-                  selected={countdown.countdownType}
-                  choices={[
-                    {label: 'Specific end date', value: 'specific-end-date'},
-                    {label: 'Loop interval', value: 'loop-interval'},
-                  ]}
-                  onChange={(value) => updateCountdown('countdownType', value)}
-                />
-
-                <FormLayout>
-                  {countdown.countdownType[0] === 'specific-end-date' && (
-                    <FormLayout.Group>
-                      <TextField
-                        type="date"
-                        label="Countdown end date"
-                        value={countdown.countdownEndDate}
-                        onChange={(value) =>
-                          updateCountdown('countdownEndDate', value)
-                        }
-                      />
-                    </FormLayout.Group>
-                  )}
-
-                  {countdown.countdownType[0] === 'loop-interval' && (
-                    <FormLayout.Group>
-                      <TextField
-                        type="number"
-                        min={0}
-                        label="Days"
-                        value={countdown.loopIntervalDays}
-                        onChange={(value) =>
-                          updateCountdown('loopIntervalDays', value)
-                        }
-                        placeholder="0"
-                      />
-                      <TextField
-                        type="number"
-                        min={0}
-                        label="Hours"
-                        value={countdown.loopIntervalHours}
-                        onChange={(value) =>
-                          updateCountdown('loopIntervalHours', value)
-                        }
-                        placeholder="0"
-                      />
-                      <TextField
-                        type="number"
-                        min={0}
-                        label="Minutes"
-                        value={countdown.loopIntervalMinutes}
-                        onChange={(value) =>
-                          updateCountdown('loopIntervalMinutes', value)
-                        }
-                        placeholder="0"
-                      />
-                    </FormLayout.Group>
-                  )}
-
-                  <TextField
-                    label="Days label"
-                    value={countdown.daysLabel}
-                    onChange={(value) => updateCountdown('daysLabel', value)}
-                    placeholder="Days"
-                    autoComplete="off"
-                  />
-                  <TextField
-                    label="Hour label"
-                    value={countdown.hoursLabel}
-                    onChange={(value) => updateCountdown('hoursLabel', value)}
-                    placeholder="Hrs"
-                    autoComplete="off"
-                  />
-                  <TextField
-                    label="Minute label"
-                    value={countdown.minutesLabel}
-                    onChange={(value) => updateCountdown('minutesLabel', value)}
-                    placeholder="Mins"
-                    autoComplete="off"
-                  />
-                  <TextField
-                    label="Second label"
-                    value={countdown.secondsLabel}
-                    onChange={(value) => updateCountdown('secondsLabel', value)}
-                    placeholder="Secs"
-                    autoComplete="off"
-                  />
-                </FormLayout>
-              </Box>
+              <TextField
+                label="Hour label"
+                value={countdown.hoursLabel}
+                onChange={(value) => updateCountdown('hoursLabel', value)}
+                placeholder="Hrs"
+                autoComplete="off"
+              />
+              <TextField
+                label="Minute label"
+                value={countdown.minutesLabel}
+                onChange={(value) => updateCountdown('minutesLabel', value)}
+                placeholder="Mins"
+                autoComplete="off"
+              />
+              <TextField
+                label="Second label"
+                value={countdown.secondsLabel}
+                onChange={(value) => updateCountdown('secondsLabel', value)}
+                placeholder="Secs"
+                autoComplete="off"
+              />
+            </FormLayout>
+          </Box>
             )}
           </>
         )}
@@ -345,8 +365,8 @@ export default function BannerTabSection({settings, onSettingsChange}) {
               marginBottom: '20px',
             }}
           >
-            Templates
-          </Text>
+              Templates
+            </Text>
 
           <Box
             style={{
@@ -385,13 +405,13 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                         : '0 2px 6px rgba(15, 23, 42, 0.05)',
                     }}
                   >
-                <Box className="px-4 pt-4">
+                    <Box className="px-4 pt-4">
                       <Box
                         className="rounded-xl overflow-hidden"
                         style={{
                           backgroundColor: preview.background,
                           border: `1px solid rgba(15, 23, 42, 0.06)`,
-                      padding: '12px',
+                          padding: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -413,40 +433,150 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                   </Box>
                 );
               })}
-          </Box>
+            </Box>
         </Box>
 
       </Box>
     </Card>,
-    <Card key="behavior" sectioned>
+    <Card key="layouts" sectioned>
       <Box className="flex flex-col gap-6 pt-2">
-        <Box>
-          <Text variant="headingMd" as="h2">
-            Behavior
-          </Text>
-          <Text tone="subdued">
-            Control when and how the popup appears for shoppers.
-          </Text>
+        <Select
+          label="Choose Layout"
+          options={[
+            {label: 'Layout 1', value: 'layout-1'},
+            {label: 'Layout 2', value: 'layout-2'},
+            {label: 'Layout 3', value: 'layout-3'},
+          ]}
+          value={layouts?.selectedLayout || 'layout-1'}
+          onChange={(value) => updateLayouts('selectedLayout', value)}
+        />
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Title 1"
+            value={layouts?.title1 || ''}
+            onChange={(value) => updateLayouts('title1', value)}
+            placeholder="Enter title 1"
+            autoComplete="off"
+          />
         </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Discount Percentage"
+            value={layouts?.discountPercentage || ''}
+            onChange={(value) => updateLayouts('discountPercentage', value)}
+            placeholder="Enter discount percentage"
+            autoComplete="off"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
         <TextField
-          label="Trigger time"
-          type="number"
-          min={0}
-          suffix="sec"
-          value={behavior.triggerTime}
-          onChange={(value) => updateBehavior('triggerTime', value)}
+            label="Description"
+            value={layouts?.description || ''}
+            onChange={(value) => updateLayouts('description', value)}
+            placeholder="Enter description"
           autoComplete="off"
         />
-        <Text tone="subdued">Popup show after X seconds.</Text>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
         <TextField
-          label="Repeat after"
+            label="Title size"
+            value={layouts?.titleSize || ''}
+            onChange={(value) => {
+              const numValue = parseInt(value, 10);
+              if (value === '' || (!isNaN(numValue) && numValue <= 35)) {
+                updateLayouts('titleSize', value);
+              }
+            }}
+            placeholder="Enter font size in pixels (e.g., 20)"
+            autoComplete="off"
           type="number"
-          min={0}
-          suffix="sec"
-          value={behavior.repeatAfter}
-          onChange={(value) => updateBehavior('repeatAfter', value)}
+            min="1"
+            max="35"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Button text"
+            value={layouts?.buttonText || ''}
+            onChange={(value) => updateLayouts('buttonText', value)}
+            placeholder="Enter button text (e.g., SHOP 35% OFF)"
           autoComplete="off"
         />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Button URL"
+            value={layouts?.buttonUrl || ''}
+            onChange={(value) => updateLayouts('buttonUrl', value)}
+            placeholder="Enter button URL (e.g., https://example.com)"
+            autoComplete="off"
+            type="url"
+          />
+        </Box>
+        <Box style={{ marginTop: '24px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Image
+          </Text>
+          <Box style={{ marginTop: '8px' }}>
+            <Select
+              label=""
+              options={[
+                {label: 'Select image from computer', value: 'upload'},
+                {label: 'Add image URL', value: 'url'},
+              ]}
+              value={layouts?.imageSource || 'upload'}
+              onChange={(value) => updateLayouts('imageSource', value)}
+            />
+          </Box>
+          {layouts?.imageSource === 'upload' && (
+            <Box style={{ marginTop: '12px' }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64String = reader.result;
+                      updateLayouts('imageUrl', base64String);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                style={{
+                  padding: '8px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  width: '100%',
+                }}
+              />
+            </Box>
+          )}
+          {layouts?.imageSource === 'url' && (
+            <Box style={{ marginTop: '12px' }}>
+              <TextField
+                label=""
+                value={layouts?.imageUrl || ''}
+                onChange={(value) => updateLayouts('imageUrl', value)}
+                placeholder="Enter image URL"
+                autoComplete="off"
+                type="url"
+              />
+            </Box>
+          )}
+          <Box style={{ marginTop: '16px' }}>
+            <TextField
+              label="Disclaimer"
+              value={layouts?.disclaimer || ''}
+              onChange={(value) => updateLayouts('disclaimer', value)}
+              placeholder="Enter disclaimer text"
+              autoComplete="off"
+              multiline
+              maxLength={200}
+            />
+          </Box>
+        </Box>
       </Box>
     </Card>,
   ];

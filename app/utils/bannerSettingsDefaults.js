@@ -28,9 +28,19 @@ export const DEFAULT_BANNER_SETTINGS = {
     backgroundImageUrl: "",
     selectedTemplate: "template-1",
   },
-  behavior: {
+  layouts: {
     triggerTime: "0",
     repeatAfter: "0",
+    selectedLayout: "layout-1",
+    title1: "",
+    discountPercentage: "",
+    description: "",
+    titleSize: "20",
+    buttonText: "",
+    buttonUrl: "",
+    imageSource: "upload",
+    imageUrl: "",
+    disclaimer: "",
   },
 };
 
@@ -42,9 +52,9 @@ export function applyBannerSettingsDefaults(settings = {}) {
       ...(settings.countdown || {}),
     },
     styles: { ...DEFAULT_BANNER_SETTINGS.styles, ...(settings.styles || {}) },
-    behavior: {
-      ...DEFAULT_BANNER_SETTINGS.behavior,
-      ...(settings.behavior || {}),
+    layouts: {
+      ...DEFAULT_BANNER_SETTINGS.layouts,
+      ...(settings.layouts || {}),
     },
   };
 

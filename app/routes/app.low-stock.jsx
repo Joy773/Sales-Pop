@@ -37,8 +37,8 @@ function deepEqual(a, b) {
   return true;
 }
 
-// Default settings
-const defaultSettings = {
+  // Default settings
+  const defaultSettings = {
   customMessage: "",
   lowStockThreshold: "10",
   alertPosition: "top-left",
