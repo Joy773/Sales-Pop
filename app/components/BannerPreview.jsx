@@ -354,7 +354,7 @@ export default function BannerPreview({settings}) {
               }}
             >
               <img
-                src="/Layout_One.png"
+                src={layouts?.imageUrl || '/Layout_One.png'}
                 alt="Layout 1"
                 style={{
                   width: '100%',
@@ -372,7 +372,7 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: 'serif',
-                    color: '#FFFFFF', // White color
+                    color: layouts?.title1Color || '#FFFFFF',
                     fontSize: `${layouts?.titleSize || '20'}px`,
                     fontWeight: 600,
                     textTransform: 'uppercase',
@@ -393,7 +393,7 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: 'serif',
-                    color: '#FFFFFF',
+                    color: layouts?.discountColor || '#FFFFFF',
                     fontSize: '72px',
                     fontWeight: 700,
                     fontStyle: 'italic',
@@ -414,7 +414,7 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: "Georgia, 'Times New Roman', serif",
-                    color: '#F9E3D7',
+                    color: layouts?.descriptionColor || '#F9E3D7',
                     fontSize: `${layouts?.titleSize || '18'}px`,
                     fontWeight: 400,
                     lineHeight: 1.5,
@@ -435,7 +435,7 @@ export default function BannerPreview({settings}) {
                     top: '340px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    backgroundColor: '#D4A574', // Dusty pink/mauve matching Kitsch button
+                    backgroundColor: layouts?.buttonColor || '#D4A574',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '8px',
@@ -457,25 +457,6 @@ export default function BannerPreview({settings}) {
                   <span style={{ fontSize: '18px' }}>→</span>
                 </button>
               )}
-              {layouts?.imageUrl && (
-                <img
-                  src={layouts.imageUrl}
-                  alt="Product"
-                  style={{
-                    position: 'absolute',
-                    bottom: '100px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    maxWidth: '400px',
-                    maxHeight: '300px',
-                    width: 'auto',
-                    height: 'auto',
-                    objectFit: 'contain',
-                    zIndex: 2,
-                    borderRadius: '8px',
-                  }}
-                />
-              )}
               {layouts?.disclaimer && (
                 <div
                   style={{
@@ -485,7 +466,7 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: "Georgia, 'Times New Roman', serif",
-                    color: '#2B1A11',
+                    color: layouts?.disclaimerColor || '#2B1A11',
                     fontSize: '14px',
                     lineHeight: 1.4,
                     width: '90%',
@@ -497,7 +478,7 @@ export default function BannerPreview({settings}) {
                   <span
                     style={{
                       fontWeight: 600,
-                      color: '#2B1A11',
+                      color: layouts?.disclaimerColor || '#2B1A11',
                       marginRight: '6px',
                     }}
                   >

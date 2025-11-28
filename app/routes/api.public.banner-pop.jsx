@@ -2,7 +2,21 @@ import { json } from "@remix-run/node";
 import { getBannerSettings, getBannerEnabled } from "../bannerSettingsRepository.server";
 import { applyBannerSettingsDefaults } from "../utils/bannerSettingsDefaults";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Accept",
+  "Cache-Control": "no-store",
+};
+
 export async function loader({ request }) {
+  // Handle CORS preflight
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
+  }
   try {
     const url = new URL(request.url);
     const shop = url.searchParams.get("shop");
@@ -22,19 +36,13 @@ export async function loader({ request }) {
         message: 'Campaign is disabled',
         settings: applyBannerSettingsDefaults()
       }, {
-        headers: {
-          "Cache-Control": "no-store",
-          "Access-Control-Allow-Origin": "*",
-        }
+        headers: corsHeaders,
       });
     }
 
     const settings = await getBannerSettings(shop);
     return json({ success: true, settings }, {
-      headers: {
-        "Cache-Control": "no-store",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: corsHeaders,
     });
   } catch (error) {
     console.error("[BannerPop Public API] Failed to load settings:", error);
@@ -44,9 +52,7 @@ export async function loader({ request }) {
         settings: applyBannerSettingsDefaults(),
     }, {
       status: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: corsHeaders,
     });
   }
 }

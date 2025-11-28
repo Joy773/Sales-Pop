@@ -28,12 +28,23 @@
   }
 
   function resolveAppOrigin() {
+    console.log('[Banner Embed] Resolving app origin...');
+    console.log('[Banner Embed] window.SalesPopBannerAppUrl:', window.SalesPopBannerAppUrl);
+    
+    const metaTag = document.querySelector('meta[name="salespop-app-url"]');
+    console.log('[Banner Embed] Meta tag:', metaTag?.content);
+    
     const configured =
       window.SalesPopBannerAppUrl ||
-      document.querySelector('meta[name="salespop-app-url"]')?.content;
+      metaTag?.content;
+    
     if (configured) {
-      return configured.replace(/\/$/, '');
+      const cleaned = configured.replace(/\/$/, '');
+      console.log('[Banner Embed] Using configured app origin:', cleaned);
+      return cleaned;
     }
+    
+    console.log('[Banner Embed] No configured app URL found, trying script detection...');
 
     const scriptCandidates = [
       document.currentScript,
@@ -59,10 +70,13 @@
 
     const devHostPattern = /(localhost|127\.0\.0\.1|ngrok\.io|trycloudflare\.com|cloudflare\.com)$/;
     if (devHostPattern.test(window.location.hostname)) {
-      return `${window.location.protocol}//${window.location.host}`.replace(/\/$/, '');
+      const devOrigin = `${window.location.protocol}//${window.location.host}`.replace(/\/$/, '');
+      console.log('[Banner Embed] Using dev origin (detected from hostname):', devOrigin);
+      return devOrigin;
     }
 
     console.warn('[Banner Embed] Unable to determine app origin');
+    console.warn('[Banner Embed] Please set window.SalesPopBannerAppUrl or meta[name="salespop-app-url"]');
     return null;
   }
 
@@ -160,6 +174,22 @@
         #${ROOT_ID} .salespop-banner-content {
           padding: 32px 20px !important;
         }
+
+        #${ROOT_ID} .salespop-banner-container[data-layout] {
+          height: auto !important;
+          min-height: 500px !important;
+          max-height: 85vh !important;
+        }
+
+        #${ROOT_ID} .salespop-banner-wrapper[data-has-layout] {
+          width: calc(100vw - 16px) !important;
+          max-height: 90vh !important;
+        }
+
+        #${ROOT_ID} .salespop-banner-container[data-layout] img[alt="Banner background"] {
+          object-fit: cover;
+          min-height: 500px;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -246,11 +276,14 @@
   function ensureRoot() {
     let root = document.getElementById(ROOT_ID);
     if (!root) {
+      console.log('[Banner Embed] Root element not found, creating new one');
       root = document.createElement('div');
       root.id = ROOT_ID;
       document.body.appendChild(root);
+      console.log('[Banner Embed] Root element created and appended to body');
     }
     root.style.display = 'block';
+    console.log('[Banner Embed] Root element ensured, display:', root.style.display);
     return root;
   }
 
@@ -275,15 +308,48 @@
         shop,
         sameOrigin,
       });
-      const response = await fetch(url.toString(), {
+      console.log('[Banner Embed] Making fetch request to:', url.toString());
+      console.log('[Banner Embed] Fetch options:', {
         credentials: sameOrigin ? 'include' : 'omit',
         mode: sameOrigin ? 'same-origin' : 'cors',
       });
+      
+      const response = await fetch(url.toString(), {
+        credentials: sameOrigin ? 'include' : 'omit',
+        mode: sameOrigin ? 'same-origin' : 'cors',
+        headers: {
+          'Accept': 'application/json',
+        },
+      }).catch((fetchError) => {
+        console.error('[Banner Embed] Fetch error details:', {
+          name: fetchError.name,
+          message: fetchError.message,
+          stack: fetchError.stack,
+        });
+        throw new Error(`Network error: ${fetchError.message}. Check if the app URL is correct: ${appOrigin}`);
+      });
+      
+      console.log('[Banner Embed] Response status:', response.status, response.statusText);
+      console.log('[Banner Embed] Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+        const errorText = await response.text().catch(() => 'Unable to read error response');
+        console.error('[Banner Embed] Response error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
+        throw new Error(`Request failed with status ${response.status}: ${errorText.substring(0, 200)}`);
       }
-      const payload = await response.json();
+      
+      const payload = await response.json().catch((jsonError) => {
+        console.error('[Banner Embed] JSON parse error:', jsonError);
+        throw new Error('Failed to parse response as JSON');
+      });
+      
+      console.log('[Banner Embed] Received payload:', payload);
       if (!payload.success) {
+        console.error('[Banner Embed] API returned success: false', payload.error);
         throw new Error(payload.error || 'Failed to load settings');
       }
       // Check if campaign is disabled
@@ -291,17 +357,372 @@
         console.log('[Banner Embed] Campaign is disabled');
         return null;
       }
+      console.log('[Banner Embed] Settings loaded successfully:', payload.settings);
+      console.log('[Banner Embed] Layout settings:', payload.settings?.layouts);
       return payload.settings;
     } catch (error) {
       console.error('[Banner Embed] Failed to fetch settings:', error);
+      console.error('[Banner Embed] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.substring(0, 500),
+      });
+      
+      // Log helpful debugging info
+      const appOrigin = resolveAppOrigin();
+      const shop = resolveShopDomain();
+      console.error('[Banner Embed] Debugging info:', {
+        appOrigin,
+        shop,
+        currentOrigin: window.location.origin,
+        apiPath: API_PATH,
+        fullUrl: appOrigin ? `${appOrigin}${API_PATH}?shop=${shop || ''}` : 'N/A',
+      });
+      
       return null;
     }
   }
 
+  function renderLayoutTemplate(root, settings) {
+    console.log('[Banner Embed] Rendering layout template with settings:', settings);
+    console.log('[Banner Embed] Settings keys:', Object.keys(settings || {}));
+    console.log('[Banner Embed] Settings.layouts:', settings?.layouts);
+    
+    const { layouts = {} } = settings;
+    console.log('[Banner Embed] Extracted layouts object:', layouts);
+    console.log('[Banner Embed] Layouts keys:', Object.keys(layouts));
+    
+    const selectedLayout = layouts.selectedLayout || 'layout-1';
+    console.log('[Banner Embed] Selected layout:', selectedLayout);
+    const appOrigin = resolveAppOrigin();
+    
+    // Get background image URL - for layout-1, use layouts.imageUrl if provided, otherwise fallback
+    let backgroundImageUrl = '';
+    if (selectedLayout === 'layout-1') {
+      // For layout-1, use layouts.imageUrl as the background image if provided,
+      // otherwise fallback to styles.backgroundImageUrl or hardcoded Layout_One.png
+      if (layouts.imageUrl) {
+        backgroundImageUrl = layouts.imageUrl;
+      } else if (settings.styles?.backgroundImageUrl) {
+        backgroundImageUrl = settings.styles.backgroundImageUrl;
+      } else {
+        // Fallback to Layout_One.png if no image is provided
+        backgroundImageUrl = appOrigin 
+          ? `${appOrigin}/Layout_One.png`
+          : '/Layout_One.png';
+      }
+    }
+
+    console.log('[Banner Embed] Background image URL:', backgroundImageUrl);
+    ensureStyles();
+
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    // Log raw data before escaping
+    console.log('[Banner Embed] Raw layout data from database:', {
+      rawTitle1: layouts.title1,
+      rawDiscount: layouts.discountPercentage,
+      rawDescription: layouts.description,
+      rawButtonText: layouts.buttonText,
+      rawButtonUrl: layouts.buttonUrl,
+      rawDisclaimer: layouts.disclaimer,
+      rawTitleSize: layouts.titleSize,
+      fullLayouts: layouts
+    });
+
+    // Extract values and log them
+    const rawTitle1 = layouts.title1;
+    const rawDiscount = layouts.discountPercentage;
+    const rawDescription = layouts.description;
+    const rawButtonText = layouts.buttonText;
+    const rawDisclaimer = layouts.disclaimer;
+    
+    console.log('[Banner Embed] Extracted raw values:', {
+      rawTitle1,
+      rawDiscount,
+      rawDescription,
+      rawButtonText,
+      rawDisclaimer,
+      titleSize: layouts.titleSize
+    });
+    
+    // Only use values if they exist and are not empty
+    const title1 = rawTitle1 ? escapeHtml(String(rawTitle1)) : '';
+    const discountPercentage = rawDiscount ? escapeHtml(String(rawDiscount)) : '';
+    const description = rawDescription ? escapeHtml(String(rawDescription)) : '';
+    const buttonText = rawButtonText ? escapeHtml(String(rawButtonText)) : '';
+    const buttonUrl = layouts.buttonUrl || '';
+    const titleSize = layouts.titleSize || '20';
+    const title1Color = layouts.title1Color || '#FFFFFF';
+    const discountColor = layouts.discountColor || '#FFFFFF';
+    const descriptionColor = layouts.descriptionColor || '#F9E3D7';
+    const buttonColor = layouts.buttonColor || '#D4A574';
+    const disclaimerColor = layouts.disclaimerColor || '#2B1A11';
+    const disclaimer = rawDisclaimer ? escapeHtml(String(rawDisclaimer)) : '';
+
+    // Render Layout 1 - render even if minimal content
+    if (selectedLayout === 'layout-1') {
+      console.log('[Banner Embed] Rendering layout-1 with escaped data:', {
+        title1,
+        discountPercentage,
+        description,
+        buttonText,
+        buttonUrl,
+        disclaimer,
+        backgroundImageUrl,
+        hasTitle1: !!title1,
+        hasDiscount: !!discountPercentage,
+        hasDescription: !!description,
+        hasButton: !!buttonText
+      });
+      
+      root.innerHTML = `
+        <div class="salespop-banner-wrapper" style="
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 9999;
+          width: 535px;
+          border-radius: 20px;
+          overflow: hidden;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        ">
+          <div class="salespop-banner-container" data-layout="${selectedLayout}" style="
+            position: relative;
+            width: 535px;
+            height: 744px;
+            border-radius: 20px;
+            overflow: hidden;
+          ">
+            ${backgroundImageUrl ? `
+              <img
+                src="${backgroundImageUrl}"
+                alt="Layout 1"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  object-position: center;
+                "
+              />
+            ` : `
+              <div style="
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                position: absolute;
+                top: 0;
+                left: 0;
+              "></div>
+            `}
+            <button type="button" class="salespop-banner-close" aria-label="Close banner" style="
+              position: absolute;
+              top: 16px;
+              right: 16px;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              border: none;
+              background: rgba(255, 255, 255, 0.9);
+              color: #000;
+              font-size: 20px;
+              line-height: 1;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+              ×
+            </button>
+            ${title1 ? `
+              <div style="
+                position: absolute;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                text-align: center;
+                font-family: serif;
+                color: ${title1Color};
+                font-size: ${titleSize}px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                width: 100%;
+                padding: 0 24px;
+                z-index: 2;
+              ">
+                ${title1}
+              </div>
+            ` : ''}
+            ${discountPercentage ? `
+              <div style="
+                position: absolute;
+                top: 145px;
+                left: 50%;
+                transform: translateX(-50%);
+                text-align: center;
+                font-family: serif;
+                color: ${discountColor};
+                font-size: 72px;
+                font-weight: 700;
+                font-style: italic;
+                line-height: 1;
+                width: 100%;
+                padding: 0 24px;
+                z-index: 2;
+              ">
+                ${discountPercentage}
+              </div>
+            ` : ''}
+            ${description ? `
+              <div style="
+                position: absolute;
+                top: 220px;
+                left: 50%;
+                transform: translateX(-50%);
+                text-align: center;
+                font-family: Georgia, 'Times New Roman', serif;
+                color: ${descriptionColor};
+                font-size: ${titleSize || '18'}px;
+                font-weight: 400;
+                line-height: 1.5;
+                width: 100%;
+                padding: 0 24px;
+                max-width: 600px;
+                word-wrap: break-word;
+                z-index: 2;
+              ">
+                ${description}
+              </div>
+            ` : ''}
+            ${buttonText ? `
+              <button type="button" class="salespop-layout-button" style="
+                position: absolute;
+                top: 340px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: ${buttonColor};
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                padding: 14px 24px;
+                font-family: sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+                text-transform: uppercase;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                white-space: nowrap;
+                z-index: 2;
+                transition: all 0.2s ease;
+              ">
+                ${buttonText}
+                <span style="font-size: 18px;">→</span>
+              </button>
+            ` : ''}
+            ${disclaimer ? `
+              <div style="
+                position: absolute;
+                bottom: 40px;
+                left: 50%;
+                transform: translateX(-50%);
+                text-align: center;
+                font-family: Georgia, 'Times New Roman', serif;
+                color: ${disclaimerColor};
+                font-size: 14px;
+                line-height: 1.4;
+                width: 90%;
+                max-width: 640px;
+                opacity: 0.9;
+                word-break: break-word;
+                z-index: 2;
+              ">
+                <span style="font-weight: 600; margin-right: 6px; color: ${disclaimerColor};">Disclaimer:</span>
+                <span style="font-weight: 400;">${disclaimer}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      // Add close button handler
+      const closeBtn = root.querySelector('.salespop-banner-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => hideBanner(root));
+      }
+
+      // Add button click handler
+      const layoutButton = root.querySelector('.salespop-layout-button');
+      if (layoutButton && buttonUrl) {
+        layoutButton.addEventListener('click', () => {
+          window.location.href = buttonUrl;
+        });
+        layoutButton.addEventListener('mouseenter', () => {
+          layoutButton.style.opacity = '0.9';
+          layoutButton.style.transform = 'translateX(-50%) scale(1.05)';
+        });
+        layoutButton.addEventListener('mouseleave', () => {
+          layoutButton.style.opacity = '1';
+          layoutButton.style.transform = 'translateX(-50%) scale(1)';
+        });
+      }
+
+      // No auto-hide for layout-1 - banner stays until close button is clicked
+      // Removed scheduleAutoHide call - banner will only close when user clicks the close button
+
+      console.log('[Banner Embed] Layout-1 rendered successfully. Root visible:', root.style.display);
+      console.log('[Banner Embed] Root element in DOM:', document.body.contains(root));
+      
+      // Ensure root is visible
+      if (root.style.display === 'none') {
+        root.style.display = 'block';
+        console.log('[Banner Embed] Root was hidden, set to block');
+      }
+      
+      return true; // Layout rendered successfully
+    }
+
+    // Layout 2 and 3 can be added here in the future
+    // For now, return false to fall back to template rendering
+    console.log('[Banner Embed] Layout template not supported, falling back to template rendering');
+    return false;
+  }
+
   function render(root, settings) {
+    console.log('[Banner Embed] Render called with settings:', settings);
     if (!settings) {
+      console.warn('[Banner Embed] No settings provided, clearing root');
       root.innerHTML = '';
       return;
+    }
+
+    // Check if layout template should be rendered
+    console.log('[Banner Embed] Checking for layout template:', settings.layouts?.selectedLayout);
+    if (settings.layouts?.selectedLayout && 
+        ['layout-1', 'layout-2', 'layout-3'].includes(settings.layouts.selectedLayout)) {
+      console.log('[Banner Embed] Layout template detected, attempting to render');
+      const layoutRendered = renderLayoutTemplate(root, settings);
+      if (layoutRendered) {
+        console.log('[Banner Embed] Layout template rendered successfully');
+        return; // Layout template rendered successfully
+      }
+      console.warn('[Banner Embed] Layout template rendering failed, falling back to template rendering');
+      // If layout rendering fails, fall through to template rendering
+    } else {
+      console.log('[Banner Embed] No layout template or not supported, using template-based rendering');
     }
 
     const { goal = {}, styles = {}, countdown = {} } = settings;
@@ -755,7 +1176,19 @@
   }
 
   function shouldShowBanner(settings) {
+    console.log('[Banner Embed] shouldShowBanner called with settings:', settings);
+    
+    // If using layout templates, check layouts for display settings first
+    if (settings.layouts?.selectedLayout) {
+      // For layouts, check if there's a displayOnPage in goal, otherwise default to all-page
+      if (!settings.goal || !settings.goal.displayOnPage) {
+        console.log('[Banner Embed] Layout template with no displayOnPage setting, showing on all pages');
+        return true;
+      }
+    }
+    
     if (!settings || !settings.goal) {
+      console.log('[Banner Embed] No settings or goal, defaulting to show on all pages');
       return true; // Default: show on all pages if no settings
     }
 
@@ -827,24 +1260,31 @@
   }
 
   async function init() {
+    console.log('[Banner Embed] Initializing banner embed...');
     const root = ensureRoot();
+    console.log('[Banner Embed] Root element:', root);
     const settings = await fetchSettings();
+    console.log('[Banner Embed] Fetched settings:', settings);
     
     // If settings is null, campaign is disabled
     if (!settings) {
-      console.log('[Banner Embed] Campaign is disabled, not rendering banner');
+      console.log('[Banner Embed] Campaign is disabled or settings are null, not rendering banner');
       root.innerHTML = '';
       return;
     }
     
     // Check if banner should be shown on this page
-    if (!shouldShowBanner(settings)) {
+    const shouldShow = shouldShowBanner(settings);
+    console.log('[Banner Embed] Should show banner:', shouldShow);
+    if (!shouldShow) {
       console.log('[Banner Embed] Banner not shown on this page based on displayOnPage setting');
       root.innerHTML = '';
       return;
     }
     
+    console.log('[Banner Embed] Calling render function...');
     render(root, settings);
+    console.log('[Banner Embed] Render function completed. Root innerHTML length:', root.innerHTML.length);
   }
 
   if (document.readyState === 'loading') {

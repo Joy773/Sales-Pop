@@ -450,72 +450,9 @@ export default function BannerTabSection({settings, onSettingsChange}) {
           value={layouts?.selectedLayout || 'layout-1'}
           onChange={(value) => updateLayouts('selectedLayout', value)}
         />
-        <Box style={{ marginTop: '16px' }}>
-          <TextField
-            label="Title 1"
-            value={layouts?.title1 || ''}
-            onChange={(value) => updateLayouts('title1', value)}
-            placeholder="Enter title 1"
-            autoComplete="off"
-          />
-        </Box>
-        <Box style={{ marginTop: '16px' }}>
-          <TextField
-            label="Discount Percentage"
-            value={layouts?.discountPercentage || ''}
-            onChange={(value) => updateLayouts('discountPercentage', value)}
-            placeholder="Enter discount percentage"
-            autoComplete="off"
-          />
-        </Box>
-        <Box style={{ marginTop: '16px' }}>
-        <TextField
-            label="Description"
-            value={layouts?.description || ''}
-            onChange={(value) => updateLayouts('description', value)}
-            placeholder="Enter description"
-          autoComplete="off"
-        />
-        </Box>
-        <Box style={{ marginTop: '16px' }}>
-        <TextField
-            label="Title size"
-            value={layouts?.titleSize || ''}
-            onChange={(value) => {
-              const numValue = parseInt(value, 10);
-              if (value === '' || (!isNaN(numValue) && numValue <= 35)) {
-                updateLayouts('titleSize', value);
-              }
-            }}
-            placeholder="Enter font size in pixels (e.g., 20)"
-            autoComplete="off"
-          type="number"
-            min="1"
-            max="35"
-          />
-        </Box>
-        <Box style={{ marginTop: '16px' }}>
-          <TextField
-            label="Button text"
-            value={layouts?.buttonText || ''}
-            onChange={(value) => updateLayouts('buttonText', value)}
-            placeholder="Enter button text (e.g., SHOP 35% OFF)"
-          autoComplete="off"
-        />
-        </Box>
-        <Box style={{ marginTop: '16px' }}>
-          <TextField
-            label="Button URL"
-            value={layouts?.buttonUrl || ''}
-            onChange={(value) => updateLayouts('buttonUrl', value)}
-            placeholder="Enter button URL (e.g., https://example.com)"
-            autoComplete="off"
-            type="url"
-          />
-        </Box>
         <Box style={{ marginTop: '24px' }}>
           <Text as="label" variant="bodyMd" fontWeight="medium">
-            Image
+            Layout Image
           </Text>
           <Box style={{ marginTop: '8px' }}>
             <Select
@@ -565,17 +502,380 @@ export default function BannerTabSection({settings, onSettingsChange}) {
               />
             </Box>
           )}
-          <Box style={{ marginTop: '16px' }}>
-            <TextField
-              label="Disclaimer"
-              value={layouts?.disclaimer || ''}
-              onChange={(value) => updateLayouts('disclaimer', value)}
-              placeholder="Enter disclaimer text"
-              autoComplete="off"
-              multiline
-              maxLength={200}
-            />
-          </Box>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Title 1"
+            value={layouts?.title1 || ''}
+            onChange={(value) => updateLayouts('title1', value)}
+            placeholder="Enter title 1"
+            autoComplete="off"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Title 1 Color
+          </Text>
+          <div style={{ 
+            marginTop: '8px',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '200px'
+          }}>
+            <div style={{ 
+              position: 'relative',
+              height: '40px',
+              borderRadius: 'var(--p-border-radius-200)',
+              border: '1px solid var(--p-color-border-subdued)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0 12px',
+              backgroundColor: '#FFFFFF'
+            }}>
+              <input
+                type="color"
+                value={layouts?.title1Color || '#FFFFFF'}
+                onChange={(e) => updateLayouts('title1Color', e.target.value)}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  margin: 0,
+                  padding: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              />
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid var(--p-color-border-subdued)',
+                backgroundColor: layouts?.title1Color || '#FFFFFF',
+                pointerEvents: 'none',
+                flexShrink: 0
+              }} />
+              <span style={{
+                color: 'var(--p-color-text)',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                pointerEvents: 'none'
+              }}>
+                {layouts?.title1Color || '#FFFFFF'}
+              </span>
+            </div>
+          </div>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Discount Percentage"
+            value={layouts?.discountPercentage || ''}
+            onChange={(value) => updateLayouts('discountPercentage', value)}
+            placeholder="Enter discount percentage"
+            autoComplete="off"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Discount Color
+          </Text>
+          <div style={{ 
+            marginTop: '8px',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '200px'
+          }}>
+            <div style={{ 
+              position: 'relative',
+              height: '40px',
+              borderRadius: 'var(--p-border-radius-200)',
+              border: '1px solid var(--p-color-border-subdued)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0 12px',
+              backgroundColor: '#FFFFFF'
+            }}>
+              <input
+                type="color"
+                value={layouts?.discountColor || '#FFFFFF'}
+                onChange={(e) => updateLayouts('discountColor', e.target.value)}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  margin: 0,
+                  padding: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              />
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid var(--p-color-border-subdued)',
+                backgroundColor: layouts?.discountColor || '#FFFFFF',
+                pointerEvents: 'none',
+                flexShrink: 0
+              }} />
+              <span style={{
+                color: 'var(--p-color-text)',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                pointerEvents: 'none'
+              }}>
+                {layouts?.discountColor || '#FFFFFF'}
+              </span>
+            </div>
+          </div>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+        <TextField
+            label="Description"
+            value={layouts?.description || ''}
+            onChange={(value) => updateLayouts('description', value)}
+            placeholder="Enter description"
+          autoComplete="off"
+        />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Description Color
+          </Text>
+          <div style={{ 
+            marginTop: '8px',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '200px'
+          }}>
+            <div style={{ 
+              position: 'relative',
+              height: '40px',
+              borderRadius: 'var(--p-border-radius-200)',
+              border: '1px solid var(--p-color-border-subdued)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0 12px',
+              backgroundColor: '#FFFFFF'
+            }}>
+              <input
+                type="color"
+                value={layouts?.descriptionColor || '#F9E3D7'}
+                onChange={(e) => updateLayouts('descriptionColor', e.target.value)}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  margin: 0,
+                  padding: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              />
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid var(--p-color-border-subdued)',
+                backgroundColor: layouts?.descriptionColor || '#F9E3D7',
+                pointerEvents: 'none',
+                flexShrink: 0
+              }} />
+              <span style={{
+                color: 'var(--p-color-text)',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                pointerEvents: 'none'
+              }}>
+                {layouts?.descriptionColor || '#F9E3D7'}
+              </span>
+            </div>
+          </div>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+        <TextField
+            label="Title size"
+            value={layouts?.titleSize || ''}
+            onChange={(value) => {
+              const numValue = parseInt(value, 10);
+              if (value === '' || (!isNaN(numValue) && numValue <= 35)) {
+                updateLayouts('titleSize', value);
+              }
+            }}
+            placeholder="Enter font size in pixels (e.g., 20)"
+            autoComplete="off"
+          type="number"
+            min="1"
+            max="35"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Button text"
+            value={layouts?.buttonText || ''}
+            onChange={(value) => updateLayouts('buttonText', value)}
+            placeholder="Enter button text (e.g., SHOP 35% OFF)"
+          autoComplete="off"
+        />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Button URL"
+            value={layouts?.buttonUrl || ''}
+            onChange={(value) => updateLayouts('buttonUrl', value)}
+            placeholder="Enter button URL (e.g., https://example.com)"
+            autoComplete="off"
+            type="url"
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Button Color
+          </Text>
+          <div style={{ 
+            marginTop: '8px',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '200px'
+          }}>
+            <div style={{ 
+              position: 'relative',
+              height: '40px',
+              borderRadius: 'var(--p-border-radius-200)',
+              border: '1px solid var(--p-color-border-subdued)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0 12px',
+              backgroundColor: '#FFFFFF'
+            }}>
+              <input
+                type="color"
+                value={layouts?.buttonColor || '#D4A574'}
+                onChange={(e) => updateLayouts('buttonColor', e.target.value)}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  margin: 0,
+                  padding: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              />
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid var(--p-color-border-subdued)',
+                backgroundColor: layouts?.buttonColor || '#D4A574',
+                pointerEvents: 'none',
+                flexShrink: 0
+              }} />
+              <span style={{
+                color: 'var(--p-color-text)',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                pointerEvents: 'none'
+              }}>
+                {layouts?.buttonColor || '#D4A574'}
+              </span>
+            </div>
+          </div>
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <TextField
+            label="Disclaimer"
+            value={layouts?.disclaimer || ''}
+            onChange={(value) => updateLayouts('disclaimer', value)}
+            placeholder="Enter disclaimer text"
+            autoComplete="off"
+            multiline
+            maxLength={200}
+          />
+        </Box>
+        <Box style={{ marginTop: '16px' }}>
+          <Text as="label" variant="bodyMd" fontWeight="medium">
+            Disclaimer Color
+          </Text>
+          <div style={{ 
+            marginTop: '8px',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '200px'
+          }}>
+            <div style={{ 
+              position: 'relative',
+              height: '40px',
+              borderRadius: 'var(--p-border-radius-200)',
+              border: '1px solid var(--p-color-border-subdued)',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0 12px',
+              backgroundColor: '#FFFFFF'
+            }}>
+              <input
+                type="color"
+                value={layouts?.disclaimerColor || '#2B1A11'}
+                onChange={(e) => updateLayouts('disclaimerColor', e.target.value)}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  margin: 0,
+                  padding: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  zIndex: 1
+                }}
+              />
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid var(--p-color-border-subdued)',
+                backgroundColor: layouts?.disclaimerColor || '#2B1A11',
+                pointerEvents: 'none',
+                flexShrink: 0
+              }} />
+              <span style={{
+                color: 'var(--p-color-text)',
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                pointerEvents: 'none'
+              }}>
+                {layouts?.disclaimerColor || '#2B1A11'}
+              </span>
+            </div>
+          </div>
         </Box>
       </Box>
     </Card>,
