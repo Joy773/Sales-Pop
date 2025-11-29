@@ -423,6 +423,17 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                 type="url"
               />
             </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <Select
+                label="Show banner to:"
+                options={[
+                  {label: 'Homepage', value: 'homepage'},
+                  {label: 'All pages', value: 'all-pages'},
+                ]}
+                value={layouts?.showBannerTo || 'homepage'}
+                onChange={(value) => updateLayouts('showBannerTo', value)}
+              />
+            </Box>
           </>
         )}
         {layouts?.selectedLayout === 'layout-1' && (
@@ -873,6 +884,7 @@ export default function BannerTabSection({settings, onSettingsChange}) {
         />
 
         {layouts?.selectedLayout === 'layout-3' && (
+          <>
           <Box style={{ marginTop: '16px' }}>
             <Text as="label" variant="bodyMd" fontWeight="medium">
               Border Color
@@ -933,6 +945,127 @@ export default function BannerTabSection({settings, onSettingsChange}) {
               </div>
             </div>
           </Box>
+          <Box style={{ marginTop: '16px' }}>
+            <Text as="label" variant="bodyMd" fontWeight="medium">
+              Text Color
+            </Text>
+            <div style={{ 
+              marginTop: '8px',
+              position: 'relative',
+              width: '100%',
+              maxWidth: '200px'
+            }}>
+              <div style={{ 
+                position: 'relative',
+                height: '40px',
+                borderRadius: 'var(--p-border-radius-200)',
+                border: '1px solid var(--p-color-border-subdued)',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '0 12px',
+                backgroundColor: '#FFFFFF'
+              }}>
+                <input
+                  type="color"
+                  value={styles?.textColor || '#000000'}
+                  onChange={(e) => updateStyles('textColor', e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: 0,
+                    left: 0,
+                    margin: 0,
+                    padding: 0,
+                    opacity: 0,
+                    cursor: 'pointer',
+                    zIndex: 1
+                  }}
+                />
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--p-color-border-subdued)',
+                  backgroundColor: styles?.textColor || '#000000',
+                  pointerEvents: 'none',
+                  flexShrink: 0
+                }} />
+                <span style={{
+                  color: 'var(--p-color-text)',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  pointerEvents: 'none'
+                }}>
+                  {styles?.textColor || '#000000'}
+                </span>
+              </div>
+            </div>
+          </Box>
+          <Box style={{ marginTop: '16px' }}>
+            <Text as="label" variant="bodyMd" fontWeight="medium">
+              URL Color
+            </Text>
+            <div style={{ 
+              marginTop: '8px',
+              position: 'relative',
+              width: '100%',
+              maxWidth: '200px'
+            }}>
+              <div style={{ 
+                position: 'relative',
+                height: '40px',
+                borderRadius: 'var(--p-border-radius-200)',
+                border: '1px solid var(--p-color-border-subdued)',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '0 12px',
+                backgroundColor: '#FFFFFF'
+              }}>
+                <input
+                  type="color"
+                  value={styles?.urlColor || '#000000'}
+                  onChange={(e) => updateStyles('urlColor', e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: 0,
+                    left: 0,
+                    margin: 0,
+                    padding: 0,
+                    opacity: 0,
+                    cursor: 'pointer',
+                    zIndex: 1
+                  }}
+                />
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--p-color-border-subdued)',
+                  backgroundColor: styles?.urlColor || '#000000',
+                  pointerEvents: 'none',
+                  flexShrink: 0
+                }} />
+                <span style={{
+                  color: 'var(--p-color-text)',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  pointerEvents: 'none'
+                }}>
+                  {styles?.urlColor || '#000000'}
+                </span>
+              </div>
+            </div>
+          </Box>
+          </>
         )}
 
         {layouts?.selectedLayout !== 'layout-3' && (

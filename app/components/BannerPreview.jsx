@@ -607,36 +607,56 @@ export default function BannerPreview({settings}) {
                 </div>
                 
                 {/* Text content */}
-                {(layouts?.text || layouts?.discountText || layouts?.brandName || layouts?.urlName) && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      textAlign: 'center',
-                      width: '80%',
-                      maxWidth: '300px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px',
-                    }}
-                  >
-                    {layouts?.text && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center',
+                    width: '80%',
+                    maxWidth: '300px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                    {layouts?.text ? (
                       <div
                         style={{
-                          color: '#000000',
+                          color: styles?.textColor || '#000000',
                           fontFamily: "'Sour Gummy', serif",
                           fontSize: '16px',
                         }}
                       >
                         {layouts.text}
                       </div>
-                    )}
-                    {layouts?.discountText && (
+                    ) : (
                       <div
                         style={{
-                          color: '#000000',
+                          color: '#999999',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '16px',
+                          fontStyle: 'italic',
+                          border: '1px solid #CCCCCC',
+                          borderRadius: '4px',
+                          padding: '12px 16px',
+                          backgroundColor: '#FAFAFA',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Enter text
+                      </div>
+                    )}
+                    {layouts?.discountText ? (
+                      <div
+                        style={{
+                          color: styles?.textColor || '#000000',
                           fontFamily: "'Sour Gummy', serif",
                           fontSize: '55px',
                           marginTop: '5px',
@@ -644,11 +664,35 @@ export default function BannerPreview({settings}) {
                       >
                         {layouts.discountText}% off
                       </div>
-                    )}
-                    {layouts?.brandName && (
+                    ) : (
                       <div
                         style={{
-                          color: '#000000',
+                          color: '#999999',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '55px',
+                          marginTop: '5px',
+                          fontStyle: 'italic',
+                          border: '1px solid #CCCCCC',
+                          borderRadius: '4px',
+                          padding: '12px 16px',
+                          backgroundColor: '#FAFAFA',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.2',
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Discount
+                      </div>
+                    )}
+                    {layouts?.brandName ? (
+                      <div
+                        style={{
+                          color: styles?.textColor || '#000000',
                           fontFamily: "'Sour Gummy', serif",
                           fontSize: '40px',
                           marginTop: '50px',
@@ -656,11 +700,35 @@ export default function BannerPreview({settings}) {
                       >
                         {layouts.brandName}
                       </div>
-                    )}
-                    {layouts?.urlName && (
+                    ) : (
                       <div
                         style={{
-                          color: '#000000',
+                          color: '#999999',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '40px',
+                          marginTop: '50px',
+                          fontStyle: 'italic',
+                          border: '1px solid #CCCCCC',
+                          borderRadius: '4px',
+                          padding: '12px 16px',
+                          backgroundColor: '#FAFAFA',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.2',
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Brand name
+                      </div>
+                    )}
+                    {layouts?.urlName ? (
+                      <div
+                        style={{
+                          color: styles?.urlColor || '#000000',
                           fontFamily: "'Sour Gummy', serif",
                           fontSize: '14px',
                           marginTop: '50px',
@@ -668,9 +736,32 @@ export default function BannerPreview({settings}) {
                       >
                         {layouts.urlName}
                       </div>
+                    ) : (
+                      <div
+                        style={{
+                          color: '#999999',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '14px',
+                          marginTop: '50px',
+                          fontStyle: 'italic',
+                          border: '1px solid #CCCCCC',
+                          borderRadius: '4px',
+                          padding: '12px 16px',
+                          backgroundColor: '#FAFAFA',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          whiteSpace: 'nowrap',
+                          lineHeight: '1.2',
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        URL name
+                      </div>
                     )}
-                  </div>
-                )}
+                </div>
               </div>
               {/* Right side - with border for image */}
               <div
@@ -685,9 +776,12 @@ export default function BannerPreview({settings}) {
                   boxSizing: 'border-box',
                   marginBottom: '40px',
                   overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {layouts?.layout3ImageUrl && (
+                {layouts?.layout3ImageUrl ? (
                   <img
                     src={layouts.layout3ImageUrl}
                     alt="Layout 3"
@@ -700,6 +794,22 @@ export default function BannerPreview({settings}) {
                       left: 0,
                     }}
                   />
+                ) : (
+                  <div
+                    style={{
+                      color: '#999999',
+                      fontFamily: "'Sour Gummy', serif",
+                      fontSize: '16px',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    Add Image
+                  </div>
                 )}
               </div>
             </div>
@@ -709,6 +819,8 @@ export default function BannerPreview({settings}) {
     );
   }
 
+  // Default preview for layout-2 or any other layout
+  // This shows the goal-based popup preview (template-based) and does NOT use layout-1 specific fields
   return (
     <Card>
       <BlockStack gap="400" padding="400">

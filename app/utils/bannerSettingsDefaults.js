@@ -27,6 +27,9 @@ export const DEFAULT_BANNER_SETTINGS = {
     popoutLayout: ["image-left"],
     backgroundImageUrl: "",
     selectedTemplate: "template-1",
+    borderColor: "#C9A876",
+    textColor: "#000000",
+    urlColor: "#000000",
   },
   layouts: {
     triggerTime: "0",
@@ -41,6 +44,13 @@ export const DEFAULT_BANNER_SETTINGS = {
     imageSource: "upload",
     imageUrl: "",
     disclaimer: "",
+    borderSize: "1",
+    text: "",
+    discountText: "",
+    brandName: "",
+    urlName: "",
+    layout3ImageUrl: "",
+    showBannerTo: "homepage",
   },
 };
 
