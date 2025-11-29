@@ -13,19 +13,28 @@ import {
 import {BANNER_TEMPLATES} from './bannerTemplates';
 
 const BASE_TABS = [
+  {id: 'layouts', content: 'Layouts', panelID: 'layouts-content'},
   {id: 'goal', content: 'Goal', panelID: 'goal-content'},
   {id: 'styles', content: 'Styles', panelID: 'styles-content'},
-  {id: 'layouts', content: 'Layouts', panelID: 'layouts-content'},
 ];
 
 export default function BannerTabSection({settings, onSettingsChange}) {
   const [selectedTab, setSelectedTab] = useState(0);
   const {goal, countdown, styles, layouts} = settings;
   const isLayoutOne = layouts?.selectedLayout === 'layout-1';
+  const isLayoutThree = layouts?.selectedLayout === 'layout-3';
   const tabs = BASE_TABS.map((tab) => {
-    if (!isLayoutOne) return tab;
-    if (tab.id === 'goal' || tab.id === 'styles') {
-      return {...tab, disabled: true};
+    // Disable 'goal' and 'styles' tabs when layout-1 is selected
+    if (isLayoutOne) {
+      if (tab.id === 'goal' || tab.id === 'styles') {
+        return {...tab, disabled: true};
+      }
+    }
+    // Disable 'goal' tab when layout-3 is selected
+    if (isLayoutThree) {
+      if (tab.id === 'goal') {
+        return {...tab, disabled: true};
+      }
     }
     return tab;
   });
@@ -330,114 +339,6 @@ export default function BannerTabSection({settings, onSettingsChange}) {
   );
 
   const tabPanels = [
-    goalTabContent,
-    <Card key="styles" sectioned>
-      <Box className="flex flex-col gap-6 pt-2">
-       
-        <ChoiceList
-          title="Popout layout"
-          selected={styles.popoutLayout}
-          choices={[
-            {label: 'Image left', value: 'image-left'},
-            {label: 'Image right', value: 'image-right'},
-          ]}
-          onChange={(value) => updateStyles('popoutLayout', value)}
-        />
-
-        <TextField
-          label="Background image URL"
-          value={styles.backgroundImageUrl ?? ''}
-          onChange={(value) => updateStyles('backgroundImageUrl', value.trim())}
-          placeholder="https://cdn.shopify.com/sample-background.jpg"
-          autoComplete="off"
-        />
-
-        <Box
-          className="flex flex-col gap-3"
-          style={{
-            marginTop: '10px',
-          }}
-        >
-          <Text
-            variant="headingSm"
-            as="h3"
-            style={{
-              marginBottom: '20px',
-            }}
-          >
-              Templates
-            </Text>
-
-          <Box
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: '16px',
-              marginTop: '10px',
-            }}
-          >
-              {BANNER_TEMPLATES.map(({id, label, preview}) => {
-                const isSelected = styles.selectedTemplate === id;
-
-                const handleSelect = () => updateStyles('selectedTemplate', id);
-                const handleKeyDown = (event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    updateStyles('selectedTemplate', id);
-                  }
-                };
-
-                return (
-                  <Box
-                    key={id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={handleSelect}
-                    onKeyDown={handleKeyDown}
-                    aria-pressed={isSelected}
-                    className="rounded-2xl border bg-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                    style={{
-                      borderColor: isSelected
-                        ? 'var(--p-color-border-strong)'
-                        : 'var(--p-color-border-subdued)',
-                      boxShadow: isSelected
-                        ? '0 6px 16px rgba(15, 118, 110, 0.18)'
-                        : '0 2px 6px rgba(15, 23, 42, 0.05)',
-                    }}
-                  >
-                    <Box className="px-4 pt-4">
-                      <Box
-                        className="rounded-xl overflow-hidden"
-                        style={{
-                          backgroundColor: preview.background,
-                          border: `1px solid rgba(15, 23, 42, 0.06)`,
-                          padding: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                        }}
-                      >
-                        <Box className="flex items-center gap-3">
-                          <Box
-                            style={{
-                              width: '46px',
-                              height: '46px',
-                              borderRadius: '12px',
-                              backgroundColor: preview.accent,
-                            }}
-                          />
-                          <Box className="flex-1" />
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-        </Box>
-
-      </Box>
-    </Card>,
     <Card key="layouts" sectioned>
       <Box className="flex flex-col gap-6 pt-2">
         <Select
@@ -450,6 +351,82 @@ export default function BannerTabSection({settings, onSettingsChange}) {
           value={layouts?.selectedLayout || 'layout-1'}
           onChange={(value) => updateLayouts('selectedLayout', value)}
         />
+        {layouts?.selectedLayout === 'layout-3' && (
+          <>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Border Size"
+                value={layouts?.borderSize || '1'}
+                onChange={(value) => {
+                  const numValue = parseInt(value, 10);
+                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= 10)) {
+                    updateLayouts('borderSize', value);
+                  }
+                }}
+                placeholder="Enter border size (1-10)"
+                autoComplete="off"
+                type="number"
+                min="1"
+                max="10"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Text"
+                value={layouts?.text || ''}
+                onChange={(value) => updateLayouts('text', value)}
+                placeholder="Enter text"
+                autoComplete="off"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Discount Text"
+                value={layouts?.discountText || ''}
+                onChange={(value) => {
+                  // Only allow numeric characters
+                  const numericValue = value.replace(/[^0-9]/g, '');
+                  updateLayouts('discountText', numericValue);
+                }}
+                placeholder="Enter discount percentage (e.g., 50)"
+                autoComplete="off"
+                type="number"
+                min="0"
+                max="100"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Brand Name"
+                value={layouts?.brandName || ''}
+                onChange={(value) => updateLayouts('brandName', value)}
+                placeholder="Enter brand name"
+                autoComplete="off"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="URL name"
+                value={layouts?.urlName || ''}
+                onChange={(value) => updateLayouts('urlName', value)}
+                placeholder="Enter URL name"
+                autoComplete="off"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Add Image"
+                value={layouts?.layout3ImageUrl || ''}
+                onChange={(value) => updateLayouts('layout3ImageUrl', value)}
+                placeholder="Enter image URL"
+                autoComplete="off"
+                type="url"
+              />
+            </Box>
+          </>
+        )}
+        {layouts?.selectedLayout === 'layout-1' && (
+          <>
         <Box style={{ marginTop: '24px' }}>
           <Text as="label" variant="bodyMd" fontWeight="medium">
             Layout Image
@@ -877,6 +854,183 @@ export default function BannerTabSection({settings, onSettingsChange}) {
             </div>
           </div>
         </Box>
+          </>
+        )}
+      </Box>
+    </Card>,
+    goalTabContent,
+    <Card key="styles" sectioned>
+      <Box className="flex flex-col gap-6 pt-2">
+       
+        <ChoiceList
+          title="Popout layout"
+          selected={styles.popoutLayout}
+          choices={[
+            {label: 'Image left', value: 'image-left'},
+            {label: 'Image right', value: 'image-right'},
+          ]}
+          onChange={(value) => updateStyles('popoutLayout', value)}
+        />
+
+        {layouts?.selectedLayout === 'layout-3' && (
+          <Box style={{ marginTop: '16px' }}>
+            <Text as="label" variant="bodyMd" fontWeight="medium">
+              Border Color
+            </Text>
+            <div style={{ 
+              marginTop: '8px',
+              position: 'relative',
+              width: '100%',
+              maxWidth: '200px'
+            }}>
+              <div style={{ 
+                position: 'relative',
+                height: '40px',
+                borderRadius: 'var(--p-border-radius-200)',
+                border: '1px solid var(--p-color-border-subdued)',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '0 12px',
+                backgroundColor: '#FFFFFF'
+              }}>
+                <input
+                  type="color"
+                  value={styles?.borderColor || '#C9A876'}
+                  onChange={(e) => updateStyles('borderColor', e.target.value)}
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: 0,
+                    left: 0,
+                    margin: 0,
+                    padding: 0,
+                    opacity: 0,
+                    cursor: 'pointer',
+                    zIndex: 1
+                  }}
+                />
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '4px',
+                  border: '1px solid var(--p-color-border-subdued)',
+                  backgroundColor: styles?.borderColor || '#C9A876',
+                  pointerEvents: 'none',
+                  flexShrink: 0
+                }} />
+                <span style={{
+                  color: 'var(--p-color-text)',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  pointerEvents: 'none'
+                }}>
+                  {styles?.borderColor || '#C9A876'}
+                </span>
+              </div>
+            </div>
+          </Box>
+        )}
+
+        {layouts?.selectedLayout !== 'layout-3' && (
+          <>
+            <TextField
+              label="Background image URL"
+              value={styles.backgroundImageUrl ?? ''}
+              onChange={(value) => updateStyles('backgroundImageUrl', value.trim())}
+              placeholder="https://cdn.shopify.com/sample-background.jpg"
+              autoComplete="off"
+            />
+
+            <Box
+              className="flex flex-col gap-3"
+              style={{
+                marginTop: '10px',
+              }}
+            >
+              <Text
+                variant="headingSm"
+                as="h3"
+                style={{
+                  marginBottom: '20px',
+                }}
+              >
+                  Templates
+                </Text>
+
+              <Box
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: '16px',
+                  marginTop: '10px',
+                }}
+              >
+                  {BANNER_TEMPLATES.map(({id, label, preview}) => {
+                    const isSelected = styles.selectedTemplate === id;
+
+                    const handleSelect = () => updateStyles('selectedTemplate', id);
+                    const handleKeyDown = (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        updateStyles('selectedTemplate', id);
+                      }
+                    };
+
+                    return (
+                      <Box
+                        key={id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={handleSelect}
+                        onKeyDown={handleKeyDown}
+                        aria-pressed={isSelected}
+                        className="rounded-2xl border bg-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                        style={{
+                          borderColor: isSelected
+                            ? 'var(--p-color-border-strong)'
+                            : 'var(--p-color-border-subdued)',
+                          boxShadow: isSelected
+                            ? '0 6px 16px rgba(15, 118, 110, 0.18)'
+                            : '0 2px 6px rgba(15, 23, 42, 0.05)',
+                        }}
+                      >
+                        <Box className="px-4 pt-4">
+                          <Box
+                            className="rounded-xl overflow-hidden"
+                            style={{
+                              backgroundColor: preview.background,
+                              border: `1px solid rgba(15, 23, 42, 0.06)`,
+                              padding: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                            }}
+                          >
+                            <Box className="flex items-center gap-3">
+                              <Box
+                                style={{
+                                  width: '46px',
+                                  height: '46px',
+                                  borderRadius: '12px',
+                                  backgroundColor: preview.accent,
+                                }}
+                              />
+                              <Box className="flex-1" />
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+            </Box>
+          </>
+        )}
+
       </Box>
     </Card>,
   ];

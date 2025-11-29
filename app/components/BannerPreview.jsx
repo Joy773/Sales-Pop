@@ -61,6 +61,18 @@ export default function BannerPreview({settings}) {
     };
   }, []);
 
+  // Load Sour Gummy font from Google Fonts
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Sour+Gummy:wght@400;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
+
   const containerStyle = {
     background: `linear-gradient(135deg, ${template.preview.background}, ${template.preview.accent})`,
     borderRadius: '20px',
@@ -487,6 +499,209 @@ export default function BannerPreview({settings}) {
                   <span style={{ fontWeight: 400 }}>{layouts.disclaimer}</span>
                 </div>
               )}
+            </div>
+          </div>
+        </BlockStack>
+      </Card>
+    );
+  }
+
+  // Render Layout 3 if selected - simple white box
+  if (selectedLayout === 'layout-3') {
+    return (
+      <Card>
+        <BlockStack gap="400" padding="400">
+          <Text as="h2" variant="headingMd">
+            Preview Section
+          </Text>
+          <div
+            style={{
+              minHeight: '420px',
+              backgroundColor: 'var(--p-color-bg-surface-secondary)',
+              borderRadius: 'var(--p-border-radius-200)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              overflow: 'hidden',
+              width: '100%',
+            }}
+          >
+            <div
+              style={{
+                width: '568px',
+                height: '565px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '20px',
+                overflow: 'hidden',
+                position: 'relative',
+                display: 'flex',
+              }}
+            >
+              {/* Left side - for text content */}
+              <div
+                style={{
+                  flex: '2',
+                  backgroundColor: '#FFFFFF',
+                  position: 'relative',
+                }}
+              >
+                {/* Top-left decorative bars */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '20px',  
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: '4px',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {/* Gray bar (taller) */}
+                  <div
+                    style={{
+                      width: '15px',
+                      height: '90px',
+                      backgroundColor: '#808080',
+                    }}
+                  />
+                  {/* Black bar (shorter) */}
+                  <div
+                    style={{
+                      width: '15px',
+                      height: '60px',
+                      backgroundColor: '#000000',
+                    }}
+                  />
+                </div>
+                
+                {/* Bottom-left decorative bars */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: '4px',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {/* Black bar (taller) */}
+                  <div
+                    style={{
+                      width: '15px',
+                      height: '90px',
+                      backgroundColor: '#000000',
+                    }}
+                  />
+                  {/* Gray bar (shorter) */}
+                  <div
+                    style={{
+                      width: '15px',
+                      height: '60px',
+                      backgroundColor: '#808080',
+                    }}
+                  />
+                </div>
+                
+                {/* Text content */}
+                {(layouts?.text || layouts?.discountText || layouts?.brandName || layouts?.urlName) && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      textAlign: 'center',
+                      width: '80%',
+                      maxWidth: '300px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
+                    {layouts?.text && (
+                      <div
+                        style={{
+                          color: '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '16px',
+                        }}
+                      >
+                        {layouts.text}
+                      </div>
+                    )}
+                    {layouts?.discountText && (
+                      <div
+                        style={{
+                          color: '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '55px',
+                          marginTop: '5px',
+                        }}
+                      >
+                        {layouts.discountText}% off
+                      </div>
+                    )}
+                    {layouts?.brandName && (
+                      <div
+                        style={{
+                          color: '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '40px',
+                          marginTop: '50px',
+                        }}
+                      >
+                        {layouts.brandName}
+                      </div>
+                    )}
+                    {layouts?.urlName && (
+                      <div
+                        style={{
+                          color: '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '14px',
+                          marginTop: '50px',
+                        }}
+                      >
+                        {layouts.urlName}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Right side - with border for image */}
+              <div
+                style={{
+                  flex: '1',
+                  backgroundColor: '#FFFFFF',
+                  position: 'relative',
+                  borderTop: `${layouts?.borderSize || 1}px solid ${styles?.borderColor || '#C9A876'}`,
+                  borderLeft: `${layouts?.borderSize || 1}px solid ${styles?.borderColor || '#C9A876'}`,
+                  marginTop: '68px',
+                  paddingLeft: '90px',
+                  boxSizing: 'border-box',
+                  marginBottom: '40px',
+                  overflow: 'hidden',
+                }}
+              >
+                {layouts?.layout3ImageUrl && (
+                  <img
+                    src={layouts.layout3ImageUrl}
+                    alt="Layout 3"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </BlockStack>
