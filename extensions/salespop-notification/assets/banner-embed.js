@@ -1071,6 +1071,8 @@
                   height: auto;
                   display: block;
                   max-width: 100%;
+                  ${layout4PageLink ? 'cursor: pointer;' : ''}
+                  pointer-events: auto;
                 "
               />
             ` : `
@@ -1127,9 +1129,24 @@
       // Add banner click handler if page link exists
       const bannerContainer = root.querySelector('.salespop-banner-container');
       if (bannerContainer && layout4PageLink) {
-        bannerContainer.addEventListener('click', () => {
-          window.location.href = layout4PageLink;
+        console.log('[Banner Embed] Layout-4: Adding click handler for page link:', layout4PageLink);
+        bannerContainer.addEventListener('click', (e) => {
+          // Don't redirect if clicking the close button (it has stopPropagation)
+          if (e.target.closest('.salespop-banner-close')) {
+            console.log('[Banner Embed] Layout-4: Close button clicked, not redirecting');
+            return;
+          }
+          
+          // Validate URL before redirecting
+          if (layout4PageLink && layout4PageLink.trim()) {
+            console.log('[Banner Embed] Layout-4: Redirecting to:', layout4PageLink);
+            window.location.href = layout4PageLink;
+          } else {
+            console.warn('[Banner Embed] Layout-4: Invalid or empty page link, not redirecting');
+          }
         });
+      } else {
+        console.log('[Banner Embed] Layout-4: No page link provided, banner is not clickable');
       }
 
       // No auto-hide for layout-4 - banner stays until close button is clicked
