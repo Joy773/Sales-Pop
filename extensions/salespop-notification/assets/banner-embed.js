@@ -695,7 +695,455 @@
       return true; // Layout rendered successfully
     }
 
-    // Layout 2 and 3 can be added here in the future
+    // Render Layout 3 if selected
+    if (selectedLayout === 'layout-3') {
+      // Extract layout-3 specific fields
+      const { styles = {} } = settings;
+      const borderSize = layouts.borderSize || '1';
+      const text = layouts.text ? escapeHtml(String(layouts.text)) : '';
+      const discountText = layouts.discountText ? escapeHtml(String(layouts.discountText)) : '';
+      const brandName = layouts.brandName ? escapeHtml(String(layouts.brandName)) : '';
+      const urlName = layouts.urlName ? escapeHtml(String(layouts.urlName)) : '';
+      const layout3ImageUrl = layouts.layout3ImageUrl || '';
+      const borderColor = styles.borderColor || '#C9A876';
+      const textColor = styles.textColor || '#000000';
+      const urlColor = styles.urlColor || '#000000';
+
+      console.log('[Banner Embed] Rendering layout-3 with data:', {
+        text,
+        discountText,
+        brandName,
+        urlName,
+        layout3ImageUrl,
+        borderSize,
+        borderColor,
+        textColor,
+        urlColor
+      });
+
+      // Load Sour Gummy font from Google Fonts
+      const fontLinkId = 'sour-gummy-font';
+      if (!document.getElementById(fontLinkId)) {
+        const link = document.createElement('link');
+        link.id = fontLinkId;
+        link.href = 'https://fonts.googleapis.com/css2?family=Sour+Gummy:wght@400;700&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+
+      root.innerHTML = `
+        <div class="salespop-banner-wrapper" style="
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 9999;
+          width: 568px;
+          border-radius: 20px;
+          overflow: hidden;
+          font-family: 'Sour Gummy', serif;
+        ">
+          <div class="salespop-banner-container" data-layout="${selectedLayout}" style="
+            position: relative;
+            width: 568px;
+            height: 565px;
+            background-color: #FFFFFF;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+          ">
+            <button type="button" class="salespop-banner-close" aria-label="Close banner" style="
+              position: absolute;
+              top: 16px;
+              right: 16px;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              border: none;
+              background: rgba(0, 0, 0, 0.7);
+              color: #FFFFFF;
+              font-size: 20px;
+              line-height: 1;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+              ×
+            </button>
+            
+            <!-- Left section - text content -->
+            <div style="
+              flex: 2;
+              background-color: #FFFFFF;
+              position: relative;
+            ">
+              <!-- Top decorative bars -->
+              <div style="
+                position: absolute;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 4px;
+                justify-content: center;
+              ">
+                <div style="
+                  width: 15px;
+                  height: 90px;
+                  background-color: #808080;
+                "></div>
+                <div style="
+                  width: 15px;
+                  height: 60px;
+                  background-color: #000000;
+                "></div>
+              </div>
+              
+              <!-- Bottom decorative bars -->
+              <div style="
+                position: absolute;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 4px;
+                justify-content: center;
+              ">
+                <div style="
+                  width: 15px;
+                  height: 90px;
+                  background-color: #000000;
+                "></div>
+                <div style="
+                  width: 15px;
+                  height: 60px;
+                  background-color: #808080;
+                "></div>
+              </div>
+              
+              <!-- Text content -->
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                width: 80%;
+                max-width: 300px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              ">
+                ${text ? `
+                  <div style="
+                    color: ${textColor};
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 16px;
+                  ">
+                    ${text}
+                  </div>
+                ` : `
+                  <div style="
+                    color: #999999;
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 16px;
+                    font-style: italic;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 4px;
+                    padding: 12px 16px;
+                    background-color: #FAFAFA;
+                    width: 100%;
+                    box-sizing: border-box;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    Enter text
+                  </div>
+                `}
+                
+                ${discountText ? `
+                  <div style="
+                    color: ${textColor};
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 55px;
+                    margin-top: 5px;
+                  ">
+                    ${discountText}% off
+                  </div>
+                ` : `
+                  <div style="
+                    color: #999999;
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 55px;
+                    margin-top: 5px;
+                    font-style: italic;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 4px;
+                    padding: 12px 16px;
+                    background-color: #FAFAFA;
+                    width: 100%;
+                    box-sizing: border-box;
+                    white-space: nowrap;
+                    line-height: 1.2;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    Discount
+                  </div>
+                `}
+                
+                ${brandName ? `
+                  <div style="
+                    color: ${textColor};
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 40px;
+                    margin-top: 50px;
+                  ">
+                    ${brandName}
+                  </div>
+                ` : `
+                  <div style="
+                    color: #999999;
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 40px;
+                    margin-top: 50px;
+                    font-style: italic;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 4px;
+                    padding: 12px 16px;
+                    background-color: #FAFAFA;
+                    width: 100%;
+                    box-sizing: border-box;
+                    white-space: nowrap;
+                    line-height: 1.2;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    Brand name
+                  </div>
+                `}
+                
+                ${urlName ? `
+                  <div style="
+                    color: ${urlColor};
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 14px;
+                    margin-top: 50px;
+                  ">
+                    ${urlName}
+                  </div>
+                ` : `
+                  <div style="
+                    color: #999999;
+                    font-family: 'Sour Gummy', serif;
+                    font-size: 14px;
+                    margin-top: 50px;
+                    font-style: italic;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 4px;
+                    padding: 12px 16px;
+                    background-color: #FAFAFA;
+                    width: 100%;
+                    box-sizing: border-box;
+                    white-space: nowrap;
+                    line-height: 1.2;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    URL name
+                  </div>
+                `}
+              </div>
+            </div>
+            
+            <!-- Right section - image with border -->
+            <div style="
+              flex: 1;
+              background-color: #FFFFFF;
+              position: relative;
+              border-top: ${borderSize}px solid ${borderColor};
+              border-left: ${borderSize}px solid ${borderColor};
+              margin-top: 68px;
+              padding-left: 90px;
+              box-sizing: border-box;
+              margin-bottom: 40px;
+              overflow: hidden;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              ${layout3ImageUrl ? `
+                <img
+                  src="${layout3ImageUrl}"
+                  alt="Layout 3"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                  "
+                />
+              ` : `
+                <div style="
+                  color: #999999;
+                  font-family: 'Sour Gummy', serif;
+                  font-size: 16px;
+                  font-style: italic;
+                  text-align: center;
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                ">
+                  Add Image
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add close button handler
+      const closeBtn = root.querySelector('.salespop-banner-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => hideBanner(root));
+      }
+
+      // No auto-hide for layout-3 - banner stays until close button is clicked
+      console.log('[Banner Embed] Layout-3 rendered successfully');
+      
+      // Ensure root is visible
+      if (root.style.display === 'none') {
+        root.style.display = 'block';
+      }
+      
+      return true; // Layout rendered successfully
+    }
+
+    // Render Layout 4 if selected
+    if (selectedLayout === 'layout-4') {
+      // Extract layout-4 specific fields
+      const layout4PreviewImageUrl = layouts.layout4PreviewImageUrl || '';
+      const layout4PageLink = layouts.layout4PageLink || '';
+
+      console.log('[Banner Embed] Rendering layout-4 with data:', {
+        layout4PreviewImageUrl,
+        layout4PageLink
+      });
+
+      root.innerHTML = `
+        <div class="salespop-banner-wrapper" style="
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 9999;
+          max-width: 90vw;
+          border-radius: 20px;
+          overflow: hidden;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        ">
+          <div class="salespop-banner-container" data-layout="${selectedLayout}" style="
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            ${layout4PageLink ? 'cursor: pointer;' : ''}
+          ">
+            ${layout4PreviewImageUrl ? `
+              <img
+                src="${layout4PreviewImageUrl}"
+                alt="Layout 4 Preview"
+                style="
+                  width: 100%;
+                  height: auto;
+                  display: block;
+                  max-width: 100%;
+                "
+              />
+            ` : `
+              <div style="
+                width: 100%;
+                min-height: 360px;
+                background-color: #F9FAFB;
+                border-radius: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px dashed #CCCCCC;
+                color: #999999;
+                font-size: 16px;
+                padding: 40px;
+              ">
+                Preview image will appear here
+              </div>
+            `}
+            <button type="button" class="salespop-banner-close" aria-label="Close banner" style="
+              position: absolute;
+              top: 16px;
+              right: 16px;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              border: none;
+              background: rgba(0, 0, 0, 0.7);
+              color: #FFFFFF;
+              font-size: 20px;
+              line-height: 1;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            ">
+              ×
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Add close button handler
+      const closeBtn = root.querySelector('.salespop-banner-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent triggering banner click if page link exists
+          hideBanner(root);
+        });
+      }
+
+      // Add banner click handler if page link exists
+      const bannerContainer = root.querySelector('.salespop-banner-container');
+      if (bannerContainer && layout4PageLink) {
+        bannerContainer.addEventListener('click', () => {
+          window.location.href = layout4PageLink;
+        });
+      }
+
+      // No auto-hide for layout-4 - banner stays until close button is clicked
+      console.log('[Banner Embed] Layout-4 rendered successfully');
+      
+      // Ensure root is visible
+      if (root.style.display === 'none') {
+        root.style.display = 'block';
+      }
+      
+      return true; // Layout rendered successfully
+    }
+
+    // Layout 2 can be added here in the future
     // For now, return false to fall back to template rendering
     console.log('[Banner Embed] Layout template not supported, falling back to template rendering');
     return false;
@@ -712,7 +1160,7 @@
     // Check if layout template should be rendered
     console.log('[Banner Embed] Checking for layout template:', settings.layouts?.selectedLayout);
     if (settings.layouts?.selectedLayout && 
-        ['layout-1', 'layout-2', 'layout-3'].includes(settings.layouts.selectedLayout)) {
+        ['layout-1', 'layout-2', 'layout-3', 'layout-4'].includes(settings.layouts.selectedLayout)) {
       console.log('[Banner Embed] Layout template detected, attempting to render');
       const layoutRendered = renderLayoutTemplate(root, settings);
       if (layoutRendered) {
@@ -1180,7 +1628,63 @@
     
     // If using layout templates, check layouts for display settings first
     if (settings.layouts?.selectedLayout) {
-      // For layouts, check if there's a displayOnPage in goal, otherwise default to all-page
+      const selectedLayout = settings.layouts.selectedLayout;
+      
+      // For layout-3, check layouts.showBannerTo
+      if (selectedLayout === 'layout-3' && settings.layouts.showBannerTo) {
+        const showBannerTo = settings.layouts.showBannerTo;
+        const currentPath = window.location.pathname;
+        
+        console.log('[Banner Embed] Layout-3 display check:', {
+          showBannerTo,
+          currentPath
+        });
+        
+        if (showBannerTo === 'homepage') {
+          // Show only on homepage
+          const normalizedCurrentPath = currentPath === '/' || currentPath === '/index' ? '/' : currentPath.replace(/\/$/, '');
+          const shouldShow = normalizedCurrentPath === '/' || normalizedCurrentPath === '/index';
+          console.log('[Banner Embed] Layout-3 homepage check:', shouldShow);
+          return shouldShow;
+        } else if (showBannerTo === 'all-pages') {
+          // Show on all pages
+          console.log('[Banner Embed] Layout-3 all-pages: showing');
+          return true;
+        }
+        
+        // Default: show on all pages if showBannerTo value is unknown
+        console.log('[Banner Embed] Layout-3 unknown showBannerTo value, defaulting to show on all pages');
+        return true;
+      }
+      
+      // For layout-4, check layouts.layout4ShowBannerTo
+      if (selectedLayout === 'layout-4' && settings.layouts.layout4ShowBannerTo) {
+        const layout4ShowBannerTo = settings.layouts.layout4ShowBannerTo;
+        const currentPath = window.location.pathname;
+        
+        console.log('[Banner Embed] Layout-4 display check:', {
+          layout4ShowBannerTo,
+          currentPath
+        });
+        
+        if (layout4ShowBannerTo === 'homepage') {
+          // Show only on homepage
+          const normalizedCurrentPath = currentPath === '/' || currentPath === '/index' ? '/' : currentPath.replace(/\/$/, '');
+          const shouldShow = normalizedCurrentPath === '/' || normalizedCurrentPath === '/index';
+          console.log('[Banner Embed] Layout-4 homepage check:', shouldShow);
+          return shouldShow;
+        } else if (layout4ShowBannerTo === 'all-page') {
+          // Show on all pages
+          console.log('[Banner Embed] Layout-4 all-page: showing');
+          return true;
+        }
+        
+        // Default: show on all pages if layout4ShowBannerTo value is unknown
+        console.log('[Banner Embed] Layout-4 unknown layout4ShowBannerTo value, defaulting to show on all pages');
+        return true;
+      }
+      
+      // For other layouts, check if there's a displayOnPage in goal, otherwise default to all-page
       if (!settings.goal || !settings.goal.displayOnPage) {
         console.log('[Banner Embed] Layout template with no displayOnPage setting, showing on all pages');
         return true;

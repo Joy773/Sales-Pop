@@ -819,6 +819,74 @@ export default function BannerPreview({settings}) {
     );
   }
 
+  // Render Layout 4 if selected - show preview image
+  if (selectedLayout === 'layout-4') {
+    const previewImageUrl = layouts?.layout4PreviewImageUrl || '';
+    
+    return (
+      <Card>
+        <BlockStack gap="400" padding="400">
+          <Text as="h2" variant="headingMd">
+            Preview Section
+          </Text>
+          <div
+            style={{
+              minHeight: '420px',
+              backgroundColor: 'var(--p-color-bg-surface-secondary)',
+              borderRadius: 'var(--p-border-radius-200)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              overflow: 'hidden',
+              width: '100%',
+            }}
+          >
+            {previewImageUrl ? (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '880px',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+                <img
+                  src={previewImageUrl}
+                  alt="Layout 4 Preview"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '880px',
+                  minHeight: '360px',
+                  backgroundColor: '#F9FAFB',
+                  borderRadius: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px dashed #CCCCCC',
+                }}
+              >
+                <Text as="p" variant="bodyMd" color="subdued">
+                  Preview image will appear here
+                </Text>
+              </div>
+            )}
+          </div>
+        </BlockStack>
+      </Card>
+    );
+  }
+
   // Default preview for layout-2 or any other layout
   // This shows the goal-based popup preview (template-based) and does NOT use layout-1 specific fields
   return (

@@ -11,6 +11,114 @@ function normalizeShop(shop) {
   return shop.trim().toLowerCase();
 }
 
+/**
+ * Filters banner settings to only include fields relevant to the selected layout
+ * @param {Object} settings - The banner settings object
+ * @returns {Object} - Filtered settings object with only relevant fields
+ */
+function filterSettingsByLayout(settings) {
+  if (!settings || typeof settings !== 'object') {
+    return settings;
+  }
+
+  const selectedLayout = settings.layouts?.selectedLayout || 'layout-1';
+
+  // Define field categories
+  const commonLayoutFields = ['selectedLayout', 'triggerTime', 'repeatAfter'];
+  
+  const layout1Fields = [
+    'title1',
+    'title1Color',
+    'discountPercentage',
+    'discountColor',
+    'description',
+    'descriptionColor',
+    'titleSize',
+    'buttonText',
+    'buttonUrl',
+    'buttonColor',
+    'imageSource',
+    'imageUrl',
+    'disclaimer',
+    'disclaimerColor',
+  ];
+
+  const layout3Fields = [
+    'borderSize',
+    'text',
+    'discountText',
+    'brandName',
+    'urlName',
+    'layout3ImageUrl',
+    'showBannerTo',
+  ];
+
+  const layout4Fields = [
+    'layout4PreviewImageUrl',
+    'layout4PageLink',
+    'layout4ShowBannerTo',
+  ];
+
+  const layout3StyleFields = ['borderColor', 'textColor', 'urlColor'];
+
+  // Create filtered settings object
+  const filteredSettings = {
+    ...settings,
+    layouts: { ...settings.layouts },
+    styles: { ...settings.styles },
+  };
+
+  // Filter layouts object
+  const filteredLayouts = {};
+
+  // Always include common fields
+  commonLayoutFields.forEach((field) => {
+    if (settings.layouts && field in settings.layouts) {
+      filteredLayouts[field] = settings.layouts[field];
+    }
+  });
+
+  // Include layout-specific fields based on selectedLayout
+  if (selectedLayout === 'layout-1') {
+    layout1Fields.forEach((field) => {
+      if (settings.layouts && field in settings.layouts) {
+        filteredLayouts[field] = settings.layouts[field];
+      }
+    });
+  } else if (selectedLayout === 'layout-3') {
+    layout3Fields.forEach((field) => {
+      if (settings.layouts && field in settings.layouts) {
+        filteredLayouts[field] = settings.layouts[field];
+      }
+    });
+  } else if (selectedLayout === 'layout-4') {
+    layout4Fields.forEach((field) => {
+      if (settings.layouts && field in settings.layouts) {
+        filteredLayouts[field] = settings.layouts[field];
+      }
+    });
+  }
+  // For layout-2, only common fields are kept (no layout-specific fields)
+
+  filteredSettings.layouts = filteredLayouts;
+
+  // Filter styles object - only include layout-3 style fields if layout-3 is selected
+  if (selectedLayout === 'layout-3') {
+    // Keep layout-3 style fields if they exist
+    const filteredStyles = { ...settings.styles };
+    filteredSettings.styles = filteredStyles;
+  } else {
+    // Remove layout-3 style fields for non-layout-3 layouts
+    const filteredStyles = { ...settings.styles };
+    layout3StyleFields.forEach((field) => {
+      delete filteredStyles[field];
+    });
+    filteredSettings.styles = filteredStyles;
+  }
+
+  return filteredSettings;
+}
+
 export async function getBannerSettings(shop) {
   const normalizedShop = normalizeShop(shop);
   const client = await clientPromise;
@@ -30,6 +138,9 @@ export async function saveBannerSettings(shop, settings) {
     throw new Error('Settings must be a valid object');
   }
 
+  // Filter settings to only include fields relevant to the selected layout
+  const filteredSettings = filterSettingsByLayout(settings);
+
   const normalizedShop = normalizeShop(shop);
   const client = await clientPromise;
   const db = client.db(DB_NAME);
@@ -37,7 +148,7 @@ export async function saveBannerSettings(shop, settings) {
 
   const document = {
     shop: normalizedShop,
-    settings: applyBannerSettingsDefaults(settings),
+    settings: applyBannerSettingsDefaults(filteredSettings),
     updatedAt: new Date(),
   };
 

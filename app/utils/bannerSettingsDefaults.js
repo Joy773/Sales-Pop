@@ -51,6 +51,9 @@ export const DEFAULT_BANNER_SETTINGS = {
     urlName: "",
     layout3ImageUrl: "",
     showBannerTo: "homepage",
+    layout4PreviewImageUrl: "",
+    layout4PageLink: "",
+    layout4ShowBannerTo: "homepage",
   },
 };
 

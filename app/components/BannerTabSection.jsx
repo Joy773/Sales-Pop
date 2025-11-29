@@ -23,6 +23,7 @@ export default function BannerTabSection({settings, onSettingsChange}) {
   const {goal, countdown, styles, layouts} = settings;
   const isLayoutOne = layouts?.selectedLayout === 'layout-1';
   const isLayoutThree = layouts?.selectedLayout === 'layout-3';
+  const isLayoutFour = layouts?.selectedLayout === 'layout-4';
   const tabs = BASE_TABS.map((tab) => {
     // Disable 'goal' and 'styles' tabs when layout-1 is selected
     if (isLayoutOne) {
@@ -33,6 +34,12 @@ export default function BannerTabSection({settings, onSettingsChange}) {
     // Disable 'goal' tab when layout-3 is selected
     if (isLayoutThree) {
       if (tab.id === 'goal') {
+        return {...tab, disabled: true};
+      }
+    }
+    // Disable 'goal' and 'styles' tabs when layout-4 is selected
+    if (isLayoutFour) {
+      if (tab.id === 'goal' || tab.id === 'styles') {
         return {...tab, disabled: true};
       }
     }
@@ -347,10 +354,46 @@ export default function BannerTabSection({settings, onSettingsChange}) {
             {label: 'Layout 1', value: 'layout-1'},
             {label: 'Layout 2', value: 'layout-2'},
             {label: 'Layout 3', value: 'layout-3'},
+            {label: 'Layout 4', value: 'layout-4'},
           ]}
           value={layouts?.selectedLayout || 'layout-1'}
           onChange={(value) => updateLayouts('selectedLayout', value)}
         />
+        {layouts?.selectedLayout === 'layout-4' && (
+          <>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Preview Image"
+                value={layouts?.layout4PreviewImageUrl || ''}
+                onChange={(value) => updateLayouts('layout4PreviewImageUrl', value)}
+                placeholder="Enter image URL"
+                autoComplete="off"
+                type="url"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <TextField
+                label="Page link"
+                value={layouts?.layout4PageLink || ''}
+                onChange={(value) => updateLayouts('layout4PageLink', value)}
+                placeholder="Enter page link"
+                autoComplete="off"
+                type="url"
+              />
+            </Box>
+            <Box style={{ marginTop: '16px' }}>
+              <Select
+                label="show banner"
+                options={[
+                  {label: 'Homepage', value: 'homepage'},
+                  {label: 'All page', value: 'all-page'},
+                ]}
+                value={layouts?.layout4ShowBannerTo || 'homepage'}
+                onChange={(value) => updateLayouts('layout4ShowBannerTo', value)}
+              />
+            </Box>
+          </>
+        )}
         {layouts?.selectedLayout === 'layout-3' && (
           <>
             <Box style={{ marginTop: '16px' }}>
@@ -873,15 +916,17 @@ export default function BannerTabSection({settings, onSettingsChange}) {
     <Card key="styles" sectioned>
       <Box className="flex flex-col gap-6 pt-2">
        
-        <ChoiceList
-          title="Popout layout"
-          selected={styles.popoutLayout}
-          choices={[
-            {label: 'Image left', value: 'image-left'},
-            {label: 'Image right', value: 'image-right'},
-          ]}
-          onChange={(value) => updateStyles('popoutLayout', value)}
-        />
+        {layouts?.selectedLayout !== 'layout-3' && (
+          <ChoiceList
+            title="Popout layout"
+            selected={styles.popoutLayout}
+            choices={[
+              {label: 'Image left', value: 'image-left'},
+              {label: 'Image right', value: 'image-right'},
+            ]}
+            onChange={(value) => updateStyles('popoutLayout', value)}
+          />
+        )}
 
         {layouts?.selectedLayout === 'layout-3' && (
           <>
