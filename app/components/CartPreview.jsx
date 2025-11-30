@@ -12,7 +12,7 @@ export default function CartPreview({ settings }) {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
-  // Get the display message
+  // Get the display message for notification bar
   const getDisplayMessage = () => {
     const customMessage = settings?.customMessage || "";
     const countdownTime = formatCountdownTime(settings?.countdownTime);
@@ -26,6 +26,23 @@ export default function CartPreview({ settings }) {
     }
     
     return `Your cart will be abandoned in: ${countdownTime}`;
+  };
+
+  // Get the display message for alert box (without appending time since timer is separate)
+  const getAlertBoxMessage = () => {
+    const customMessage = settings?.customMessage || "";
+    const countdownTime = formatCountdownTime(settings?.countdownTime || 5);
+    
+    if (customMessage) {
+      // Replace {TIME} placeholder if it exists
+      if (customMessage.includes("{TIME}")) {
+        return customMessage.replace("{TIME}", countdownTime);
+      }
+      // Return custom message as-is (don't append time since timer is shown separately)
+      return customMessage;
+    }
+    
+    return "Your cart will be abandoned";
   };
 
   // Check which display type is selected
@@ -173,7 +190,7 @@ export default function CartPreview({ settings }) {
                   fontWeight: "500",
                   lineHeight: "1.4",
                 }}>
-                  Your cart will be abandoned
+                  {getAlertBoxMessage()}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <a

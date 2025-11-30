@@ -1,9 +1,12 @@
+import { json } from "@remix-run/node";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { Page, Layout, Box } from "@shopify/polaris";
 import CartTabSection from "../components/CartTabSection";
 import CartPreview from "../components/CartPreview";
 import Savebar from "../components/Savebar";
+import { authenticate } from "../shopify.server";
+import { getCartCountdownSettings } from "../cartCountdownSettingsRepository.server";
 
 function deepEqual(a, b) {
   if (a === b) return true;
@@ -20,7 +23,23 @@ function deepEqual(a, b) {
   return true;
 }
 
+export async function loader({ request }) {
+  try {
+    const { session } = await authenticate.admin(request);
+    const shop = session.shop;
+    const savedSettings = await getCartCountdownSettings(shop);
+    
+    return json({ 
+      savedSettings: savedSettings || {}
+    });
+  } catch (error) {
+    console.error('Error loading cart countdown settings in loader:', error);
+    return json({ savedSettings: {} });
+  }
+}
+
 export default function CartCountdown() {
+  const { savedSettings } = useLoaderData();
   // Default settings
   const defaultSettings = {
     showAlert: ["notification-bar"],
@@ -46,9 +65,15 @@ export default function CartCountdown() {
     yOffset: "20",
   };
 
+  // Merge saved settings with defaults (saved settings override defaults)
+  const mergedSettings = {
+    ...defaultSettings,
+    ...savedSettings,
+  };
+
   const fetcher = useFetcher();
-  const [settings, setSettings] = useState(defaultSettings);
-  const [lastSavedSettings, setLastSavedSettings] = useState(defaultSettings);
+  const [settings, setSettings] = useState(mergedSettings);
+  const [lastSavedSettings, setLastSavedSettings] = useState(mergedSettings);
 
   const [notification, setNotification] = useState(null);
   const notificationTimeoutRef = useRef(null);

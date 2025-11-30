@@ -92,6 +92,58 @@
     return `Your cart will be abandoned in: ${timeString}`;
   }
 
+  function getAlertBoxMessage(customMessage, timeString) {
+    if (customMessage) {
+      if (customMessage.includes('{TIME}')) {
+        return customMessage.replace('{TIME}', timeString);
+      }
+      return customMessage;
+    }
+    return 'Your cart will be abandoned';
+  }
+
+  function getAlertPositionStyles(alertPosition) {
+    const position = alertPosition || 'bottom-right';
+    const styles = {
+      position: 'fixed',
+      zIndex: 10000,
+    };
+
+    switch (position) {
+      case 'top-left':
+        styles.top = '20px';
+        styles.left = '20px';
+        styles.right = 'auto';
+        styles.bottom = 'auto';
+        break;
+      case 'top-right':
+        styles.top = '20px';
+        styles.right = '20px';
+        styles.left = 'auto';
+        styles.bottom = 'auto';
+        break;
+      case 'bottom-right':
+        styles.bottom = '20px';
+        styles.right = '20px';
+        styles.top = 'auto';
+        styles.left = 'auto';
+        break;
+      case 'bottom-left':
+        styles.bottom = '20px';
+        styles.left = '20px';
+        styles.top = 'auto';
+        styles.right = 'auto';
+        break;
+      default:
+        styles.bottom = '20px';
+        styles.right = '20px';
+        styles.top = 'auto';
+        styles.left = 'auto';
+    }
+
+    return styles;
+  }
+
   function ensureStyles() {
     const STYLE_ID = 'salespop-cart-countdown-styles';
     if (document.getElementById(STYLE_ID)) {
@@ -109,12 +161,94 @@
         animation: cart-countdown-fade-in 240ms ease-out;
       }
 
+      #${ROOT_ID}.alert-box-mode {
+        position: fixed;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        animation: cart-countdown-alert-fade-in 240ms ease-out;
+      }
+
       #${ROOT_ID} .cart-countdown-bar {
         width: 100%;
         padding: 16px 24px;
         text-align: center;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         font-family: Arial, sans-serif;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box {
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        max-width: 500px;
+        width: auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        font-family: Arial, sans-serif;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .countdown-circle {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .countdown-circle svg {
+        transform: rotate(-90deg);
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .countdown-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 18px;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .alert-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .alert-message {
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .checkout-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .checkout-link a {
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      #${ROOT_ID} .cart-countdown-alert-box .info-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 1.5px solid;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+        flex-shrink: 0;
       }
 
       @keyframes cart-countdown-fade-in {
@@ -125,6 +259,17 @@
         to {
           opacity: 1;
           transform: translateY(0);
+        }
+      }
+
+      @keyframes cart-countdown-alert-fade-in {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
         }
       }
     `;
@@ -184,6 +329,19 @@
     }
 
     const timeString = formatTime(remainingSeconds);
+    const showAlert = settings?.showAlert?.[0] || 'notification-bar';
+    const isAlertBox = showAlert === 'alert-box';
+
+    if (isAlertBox) {
+      // Render Alert Box
+      renderAlertBox(root, settings, timeString);
+    } else {
+      // Render Notification Bar
+      renderNotificationBar(root, settings, timeString);
+    }
+  }
+
+  function renderNotificationBar(root, settings, timeString) {
     const message = getDisplayMessage(settings?.customMessage, timeString);
 
     root.className = '';
@@ -202,6 +360,68 @@
     const height = bar?.offsetHeight || root.offsetHeight || 0;
     if (height > 0) {
       applyBodyPaddingOffset(height);
+    }
+  }
+
+  function renderAlertBox(root, settings, timeString) {
+    const alertPosition = settings?.alertPosition || 'bottom-right';
+    const buttonAction = settings?.buttonAction || 'checkout-now';
+    const backgroundColor = settings?.backgroundColor || '#2962FF';
+    const textColor = settings?.textColor || '#ffffff';
+    const borderRadius = settings?.borderRadius || 12;
+    const customMessage = settings?.customMessage || '';
+    
+    const alertMessage = getAlertBoxMessage(customMessage, timeString);
+    const buttonText = buttonAction === 'view-cart' ? 'View cart' : 'Checkout Now';
+    const buttonUrl = buttonAction === 'view-cart' ? '/cart' : '/checkout';
+
+    // Calculate progress for circular timer
+    const totalMinutes = parseInt(settings?.countdownTime) || 5;
+    const totalSeconds = totalMinutes * 60;
+    const progress = (remainingSeconds / totalSeconds) * 100;
+    
+    // Calculate stroke-dasharray for circular progress
+    const radius = 32;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress / 100) * circumference;
+
+    // Get position styles
+    const positionStyles = getAlertPositionStyles(alertPosition);
+    const positionStyleString = Object.entries(positionStyles)
+      .map(([key, value]) => `${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value}`)
+      .join('; ');
+
+    root.className = 'alert-box-mode';
+    root.style.cssText = positionStyleString;
+
+    root.innerHTML = `
+      <div class="cart-countdown-alert-box" style="
+        background-color: ${backgroundColor};
+        color: ${textColor};
+        border-radius: ${borderRadius}px;
+      ">
+        <div class="countdown-circle">
+          <svg width="70" height="70">
+            <circle cx="35" cy="35" r="${radius}" fill="none" stroke="rgba(255, 255, 255, 0.3)" stroke-width="4" />
+            <circle cx="35" cy="35" r="${radius}" fill="none" stroke="${textColor}" stroke-width="4" 
+              stroke-linecap="round" stroke-dasharray="${circumference}" 
+              stroke-dashoffset="${offset}" />
+          </svg>
+          <div class="countdown-text" style="color: ${textColor};">${timeString}</div>
+        </div>
+        <div class="alert-content">
+          <div class="alert-message" style="color: ${textColor};">${alertMessage}</div>
+          <div class="checkout-link">
+            <a href="${buttonUrl}" style="color: ${textColor};">${buttonText}</a>
+            <div class="info-icon" style="border-color: ${textColor}; color: ${textColor};">i</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Don't apply body padding for alert box
+    if (appliedBodyPadding > 0) {
+      resetBodyPaddingOffset();
     }
   }
 
@@ -471,7 +691,15 @@
 
     const countdownMinutes = parseInt(settings.countdownTime) || 0;
     if (countdownMinutes > 0) {
-      startCountdown(countdownMinutes);
+      // Check if we should reset time when adding to cart
+      const resetTimeOnAddToCart = settings?.resetTimeOnAddToCart?.[0] === 'true';
+      
+      // If reset is enabled, or no countdown is currently running, start/restart countdown
+      if (resetTimeOnAddToCart || remainingSeconds <= 0) {
+        startCountdown(countdownMinutes);
+      } else {
+        console.log('[Cart Countdown] Countdown already running and reset on add to cart is disabled');
+      }
     } else {
       console.warn('[Cart Countdown] Countdown time not configured');
     }
