@@ -23,10 +23,14 @@ function deepEqual(a, b) {
 export default function CartCountdown() {
   // Default settings
   const defaultSettings = {
+    showAlert: ["notification-bar"],
     countdownTime: "",
     actionAfterExpired: "do-nothing",
     customMessage: "",
     additionalMessage: "",
+    resetTimeOnAddToCart: ["false"],
+    buttonAction: "checkout-now",
+    alertPosition: "bottom-right",
     backgroundColor: "#3b82f6",
     borderColor: "#e1e3e5",
     borderWidth: 1,

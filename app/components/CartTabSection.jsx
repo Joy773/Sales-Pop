@@ -1,14 +1,18 @@
-import { Card, Text, BlockStack, Box, TextField, Select } from "@shopify/polaris";
+import { Card, Text, BlockStack, Box, TextField, Select, ChoiceList } from "@shopify/polaris";
 import { useState, useEffect, useRef } from "react";
 
 export default function CartTabSection({ settings, onSettingsChange }) {
   const [selectedTab, setSelectedTab] = useState("settings");
   
   // Settings states
+  const [showAlert, setShowAlert] = useState(settings?.showAlert || ["notification-bar"]);
   const [countdownTime, setCountdownTime] = useState(settings?.countdownTime || "");
   const [actionAfterExpired, setActionAfterExpired] = useState(settings?.actionAfterExpired || "do-nothing");
   const [customMessage, setCustomMessage] = useState(settings?.customMessage || "");
   const [additionalMessage, setAdditionalMessage] = useState(settings?.additionalMessage || "");
+  const [resetTimeOnAddToCart, setResetTimeOnAddToCart] = useState(settings?.resetTimeOnAddToCart || ["false"]);
+  const [buttonAction, setButtonAction] = useState(settings?.buttonAction || "checkout-now");
+  const [alertPosition, setAlertPosition] = useState(settings?.alertPosition || "bottom-right");
   
   // Box Style states
   const [backgroundColor, setBackgroundColor] = useState(settings?.backgroundColor || "#fff8e6");
@@ -35,11 +39,57 @@ export default function CartTabSection({ settings, onSettingsChange }) {
     { label: 'Do nothing', value: 'do-nothing' },
   ];
 
+  const buttonActionOptions = [
+    { label: 'Checkout now', value: 'checkout-now' },
+    { label: 'View cart', value: 'view-cart' },
+  ];
+
+  const alertPositionOptions = [
+    { label: 'Top left', value: 'top-left' },
+    { label: 'Top right', value: 'top-right' },
+    { label: 'Bottom right', value: 'bottom-right' },
+    { label: 'Bottom left', value: 'bottom-left' },
+  ];
+
   const renderSettingsContent = () => {
     return (
       <BlockStack gap="500">
         <Box paddingInlineStart="400" paddingInlineEnd="400">
           <BlockStack gap="300">
+            <ChoiceList
+              title="Show Alert"
+              choices={[
+                { label: "Notification Bar", value: "notification-bar" },
+                { label: "Alert Box", value: "alert-box" },
+              ]}
+              selected={showAlert}
+              onChange={setShowAlert}
+            />
+            <ChoiceList
+              title="Reset time whenever add to cart"
+              choices={[
+                { label: "Yes", value: "true" },
+                { label: "No", value: "false" },
+              ]}
+              selected={resetTimeOnAddToCart}
+              onChange={setResetTimeOnAddToCart}
+            />
+            {showAlert[0] === "alert-box" && (
+              <Select
+                label="Button action/text"
+                options={buttonActionOptions}
+                value={buttonAction}
+                onChange={setButtonAction}
+              />
+            )}
+            {showAlert[0] === "alert-box" && (
+              <Select
+                label="Alert position"
+                options={alertPositionOptions}
+                value={alertPosition}
+                onChange={setAlertPosition}
+              />
+            )}
             <TextField
               label="Countdown time"
               type="number"
@@ -165,14 +215,16 @@ export default function CartTabSection({ settings, onSettingsChange }) {
                 {textColor}
               </div>
             </div>
-            <TextField
-              label="Text size"
-              type="number"
-              value={textSize.toString()}
-              onChange={(value) => setTextSize(Number(value))}
-              autoComplete="off"
-              min="0"
-            />
+            {showAlert[0] !== "alert-box" && (
+              <TextField
+                label="Text size"
+                type="number"
+                value={textSize.toString()}
+                onChange={(value) => setTextSize(Number(value))}
+                autoComplete="off"
+                min="0"
+              />
+            )}
           </BlockStack>
         </Box>
       </BlockStack>
@@ -202,10 +254,14 @@ export default function CartTabSection({ settings, onSettingsChange }) {
     }
     
     const currentSettings = {
+      showAlert,
       countdownTime,
       actionAfterExpired,
       customMessage,
       additionalMessage,
+      resetTimeOnAddToCart,
+      buttonAction,
+      alertPosition,
       backgroundColor,
       borderColor,
       borderWidth,
@@ -223,10 +279,14 @@ export default function CartTabSection({ settings, onSettingsChange }) {
     
     onSettingsChange(currentSettings);
   }, [
+    showAlert,
     countdownTime,
     actionAfterExpired,
     customMessage,
     additionalMessage,
+    resetTimeOnAddToCart,
+    buttonAction,
+    alertPosition,
     backgroundColor,
     borderColor,
     borderWidth,
