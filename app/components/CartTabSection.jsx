@@ -114,14 +114,16 @@ export default function CartTabSection({ settings, onSettingsChange }) {
               autoComplete="off"
               placeholder="Enter custom message"
             />
-            <TextField
-              label="Message after time expired"
-              type="text"
-              value={additionalMessage}
-              onChange={setAdditionalMessage}
-              autoComplete="off"
-              placeholder="Enter message after time expired"
-            />
+            {showAlert[0] !== "alert-box" && (
+              <TextField
+                label="Message after time expired"
+                type="text"
+                value={additionalMessage}
+                onChange={setAdditionalMessage}
+                autoComplete="off"
+                placeholder="Enter message after time expired"
+              />
+            )}
           </BlockStack>
         </Box>
       </BlockStack>

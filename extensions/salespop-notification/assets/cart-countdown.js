@@ -435,6 +435,35 @@
     }
   }
 
+  function showExpiredMessage(settings) {
+    const root = document.getElementById(ROOT_ID);
+    if (!root) {
+      return false;
+    }
+
+    const showAlert = settings?.showAlert?.[0] || 'notification-bar';
+    const isAlertBox = showAlert === 'alert-box';
+    const additionalMessage = settings?.additionalMessage || '';
+
+    if (!additionalMessage) {
+      return false;
+    }
+
+    // Don't show expired message for alert box
+    if (isAlertBox) {
+      return false;
+    }
+
+    // Only show expired message for notification bar
+    const bar = root.querySelector('.cart-countdown-bar');
+    if (bar) {
+      bar.textContent = additionalMessage;
+      return true;
+    }
+
+    return false;
+  }
+
   function saveCountdownState() {
     if (remainingSeconds > 0 && settings) {
       try {
@@ -535,18 +564,11 @@
         countdownInterval = null;
         
         // Show expired message if configured
-        if (settings.additionalMessage) {
-          const root = document.getElementById(ROOT_ID);
-          if (root) {
-            const bar = root.querySelector('.cart-countdown-bar');
-            if (bar) {
-              bar.textContent = settings.additionalMessage;
-              setTimeout(() => {
-                handleCountdownExpired();
-              }, 3000); // Show message for 3 seconds
-              return;
-            }
-          }
+        if (showExpiredMessage(settings)) {
+          setTimeout(() => {
+            handleCountdownExpired();
+          }, 3000); // Show message for 3 seconds
+          return;
         }
         
         handleCountdownExpired();
@@ -599,18 +621,11 @@
             countdownInterval = null;
             
             // Show expired message if configured
-            if (settings.additionalMessage) {
-              const root = document.getElementById(ROOT_ID);
-              if (root) {
-                const bar = root.querySelector('.cart-countdown-bar');
-                if (bar) {
-                  bar.textContent = settings.additionalMessage;
-                  setTimeout(() => {
-                    handleCountdownExpired();
-                  }, 3000);
-                  return;
-                }
-              }
+            if (showExpiredMessage(settings)) {
+              setTimeout(() => {
+                handleCountdownExpired();
+              }, 3000); // Show message for 3 seconds
+              return;
             }
             
             handleCountdownExpired();
