@@ -366,7 +366,7 @@ export default function BannerPreview({settings}) {
               }}
             >
               <img
-                src={layouts?.imageUrl || '/Layout_One.png'}
+                src={backgroundImageUrl || '/Layout_One.png'}
                 alt="Layout 1"
                 style={{
                   width: '100%',
@@ -375,7 +375,7 @@ export default function BannerPreview({settings}) {
                   objectPosition: 'center',
                 }}
               />
-              {layouts?.title1 && (
+              {heading && (
                 <div
                   style={{
                     position: 'absolute',
@@ -384,8 +384,8 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: 'serif',
-                    color: layouts?.title1Color || '#FFFFFF',
-                    fontSize: `${layouts?.titleSize || '20'}px`,
+                    color: styles?.textColor || '#FFFFFF',
+                    fontSize: `${styles?.titleSize || '20'}px`,
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
@@ -393,7 +393,7 @@ export default function BannerPreview({settings}) {
                     padding: '0 24px',
                   }}
                 >
-                  {layouts.title1}
+                  {heading}
                 </div>
               )}
               {layouts?.discountPercentage && (
@@ -417,7 +417,7 @@ export default function BannerPreview({settings}) {
                   {layouts.discountPercentage}
                 </div>
               )}
-              {layouts?.description && (
+              {description && (
                 <div
                   style={{
                     position: 'absolute',
@@ -427,7 +427,7 @@ export default function BannerPreview({settings}) {
                     textAlign: 'center',
                     fontFamily: "Georgia, 'Times New Roman', serif",
                     color: layouts?.descriptionColor || '#F9E3D7',
-                    fontSize: `${layouts?.titleSize || '18'}px`,
+                    fontSize: `${styles?.descriptionSize || '18'}px`,
                     fontWeight: 400,
                     lineHeight: 1.5,
                     width: '100%',
@@ -436,7 +436,7 @@ export default function BannerPreview({settings}) {
                     wordWrap: 'break-word',
                   }}
                 >
-                  {layouts.description}
+                  {description}
                 </div>
               )}
               {layouts?.buttonText && (
@@ -531,7 +531,7 @@ export default function BannerPreview({settings}) {
               style={{
                 width: '568px',
                 height: '565px',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: styles?.backgroundColor || '#FFFFFF',
                 borderRadius: '20px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -542,7 +542,7 @@ export default function BannerPreview({settings}) {
               <div
                 style={{
                   flex: '2',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: styles?.backgroundColor || '#FFFFFF',
                   position: 'relative',
                 }}
               >

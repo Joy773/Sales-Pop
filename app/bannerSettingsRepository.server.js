@@ -27,13 +27,10 @@ function filterSettingsByLayout(settings) {
   const commonLayoutFields = ['selectedLayout', 'triggerTime', 'repeatAfter'];
   
   const layout1Fields = [
-    'title1',
-    'title1Color',
     'discountPercentage',
     'discountColor',
     'description',
     'descriptionColor',
-    'titleSize',
     'buttonText',
     'buttonUrl',
     'buttonColor',
@@ -59,7 +56,8 @@ function filterSettingsByLayout(settings) {
     'layout4ShowBannerTo',
   ];
 
-  const layout3StyleFields = ['borderColor', 'textColor', 'urlColor'];
+  const layout3StyleFields = ['backgroundColor', 'borderColor', 'textColor', 'urlColor'];
+  const layout1StyleFields = ['titleSize', 'descriptionSize', 'textColor', 'backgroundImageUrl'];
 
   // Create filtered settings object
   const filteredSettings = {
@@ -102,15 +100,28 @@ function filterSettingsByLayout(settings) {
 
   filteredSettings.layouts = filteredLayouts;
 
-  // Filter styles object - only include layout-3 style fields if layout-3 is selected
-  if (selectedLayout === 'layout-3') {
-    // Keep layout-3 style fields if they exist
-    const filteredStyles = { ...settings.styles };
+  // Filter styles object based on selected layout
+  const filteredStyles = { ...settings.styles };
+  
+  if (selectedLayout === 'layout-1') {
+    // For layout-1, preserve layout-1 style fields and remove layout-3 style fields
+    layout3StyleFields.forEach((field) => {
+      delete filteredStyles[field];
+    });
+    // Layout-1 style fields are already in filteredStyles, no need to delete them
+    filteredSettings.styles = filteredStyles;
+  } else if (selectedLayout === 'layout-3') {
+    // For layout-3, keep layout-3 style fields and remove layout-1 style fields
+    layout1StyleFields.forEach((field) => {
+      delete filteredStyles[field];
+    });
     filteredSettings.styles = filteredStyles;
   } else {
-    // Remove layout-3 style fields for non-layout-3 layouts
-    const filteredStyles = { ...settings.styles };
+    // For other layouts, remove both layout-1 and layout-3 specific style fields
     layout3StyleFields.forEach((field) => {
+      delete filteredStyles[field];
+    });
+    layout1StyleFields.forEach((field) => {
       delete filteredStyles[field];
     });
     filteredSettings.styles = filteredStyles;
@@ -146,9 +157,80 @@ export async function saveBannerSettings(shop, settings) {
   const db = client.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
 
+  // Load existing settings to preserve data from other layouts
+  const existingDoc = await collection.findOne({ shop: normalizedShop });
+  const existingSettings = existingDoc?.settings || {};
+
+  // Smart merge: preserve layout-specific fields from existing settings
+  const selectedLayout = settings.layouts?.selectedLayout || settings.selectedLayout || 'layout-1';
+  
+  // Preserve layout-specific style fields from existing settings
+  const preservedStyles = { ...existingSettings.styles || {} };
+  const layout1StyleFields = ['titleSize', 'descriptionSize', 'textColor', 'backgroundImageUrl'];
+  const layout3StyleFields = ['backgroundColor', 'borderColor', 'textColor', 'urlColor'];
+  
+  // Preserve layout-1 style fields if not currently saving layout-1
+  if (selectedLayout !== 'layout-1') {
+    layout1StyleFields.forEach((field) => {
+      if (existingSettings.styles?.[field] !== undefined) {
+        preservedStyles[field] = existingSettings.styles[field];
+      }
+    });
+  }
+  
+  // Preserve layout-3 style fields if not currently saving layout-3
+  if (selectedLayout !== 'layout-3') {
+    layout3StyleFields.forEach((field) => {
+      if (existingSettings.styles?.[field] !== undefined) {
+        preservedStyles[field] = existingSettings.styles[field];
+      }
+    });
+  }
+  
+  // Preserve layout-specific layout fields from existing settings
+  const preservedLayouts = { ...existingSettings.layouts || {} };
+  const layout1Fields = ['discountPercentage', 'buttonText', 'buttonUrl', 'disclaimer', 'descriptionColor', 'discountColor', 'disclaimerColor', 'buttonColor'];
+  const layout3Fields = ['borderSize', 'text', 'discountText', 'brandName', 'urlName', 'layout3ImageUrl', 'showBannerTo'];
+  const layout4Fields = ['layout4PreviewImageUrl', 'layout4PageLink', 'layout4ShowBannerTo'];
+  
+  // Preserve layout-1 fields if not currently saving layout-1
+  if (selectedLayout !== 'layout-1') {
+    layout1Fields.forEach((field) => {
+      if (existingSettings.layouts?.[field] !== undefined) {
+        preservedLayouts[field] = existingSettings.layouts[field];
+      }
+    });
+  }
+  
+  // Preserve layout-3 fields if not currently saving layout-3
+  if (selectedLayout !== 'layout-3') {
+    layout3Fields.forEach((field) => {
+      if (existingSettings.layouts?.[field] !== undefined) {
+        preservedLayouts[field] = existingSettings.layouts[field];
+      }
+    });
+  }
+  
+  // Preserve layout-4 fields if not currently saving layout-4
+  if (selectedLayout !== 'layout-4') {
+    layout4Fields.forEach((field) => {
+      if (existingSettings.layouts?.[field] !== undefined) {
+        preservedLayouts[field] = existingSettings.layouts[field];
+      }
+    });
+  }
+
+  // Merge existing settings with filtered settings (filtered settings take precedence)
+  const mergedSettings = {
+    goal: { ...existingSettings.goal, ...filteredSettings.goal },
+    countdown: { ...existingSettings.countdown, ...filteredSettings.countdown },
+    styles: { ...preservedStyles, ...filteredSettings.styles },
+    layouts: { ...preservedLayouts, ...filteredSettings.layouts },
+  };
+
   const document = {
     shop: normalizedShop,
-    settings: applyBannerSettingsDefaults(filteredSettings),
+    settings: applyBannerSettingsDefaults(mergedSettings),
     updatedAt: new Date(),
   };
 

@@ -388,9 +388,10 @@
     console.log('[Banner Embed] Settings keys:', Object.keys(settings || {}));
     console.log('[Banner Embed] Settings.layouts:', settings?.layouts);
     
-    const { layouts = {} } = settings;
+    const { layouts = {}, goal = {} } = settings;
     console.log('[Banner Embed] Extracted layouts object:', layouts);
     console.log('[Banner Embed] Layouts keys:', Object.keys(layouts));
+    console.log('[Banner Embed] Extracted goal object:', goal);
     
     const selectedLayout = layouts.selectedLayout || 'layout-1';
     console.log('[Banner Embed] Selected layout:', selectedLayout);
@@ -426,59 +427,65 @@
 
     // Log raw data before escaping
     console.log('[Banner Embed] Raw layout data from database:', {
-      rawTitle1: layouts.title1,
+      rawPopupTitle: goal.popupTitle,
+      rawPopupDescription: goal.popupDescription,
       rawDiscount: layouts.discountPercentage,
-      rawDescription: layouts.description,
       rawButtonText: layouts.buttonText,
       rawButtonUrl: layouts.buttonUrl,
       rawDisclaimer: layouts.disclaimer,
-      rawTitleSize: layouts.titleSize,
-      fullLayouts: layouts
+      titleSize: settings.styles?.titleSize,
+      descriptionSize: settings.styles?.descriptionSize,
+      fullLayouts: layouts,
+      fullGoal: goal,
+      fullStyles: settings.styles
     });
 
-    // Extract values and log them
-    const rawTitle1 = layouts.title1;
+    // Extract values and log them - use goal.popupTitle and goal.popupDescription instead of layouts.title1 and layouts.description
+    const rawPopupTitle = goal.popupTitle;
+    const rawPopupDescription = goal.popupDescription;
     const rawDiscount = layouts.discountPercentage;
-    const rawDescription = layouts.description;
     const rawButtonText = layouts.buttonText;
     const rawDisclaimer = layouts.disclaimer;
     
     console.log('[Banner Embed] Extracted raw values:', {
-      rawTitle1,
+      rawPopupTitle,
+      rawPopupDescription,
       rawDiscount,
-      rawDescription,
       rawButtonText,
       rawDisclaimer,
-      titleSize: layouts.titleSize
+      titleSize: settings.styles?.titleSize,
+      descriptionSize: settings.styles?.descriptionSize
     });
     
     // Only use values if they exist and are not empty
-    const title1 = rawTitle1 ? escapeHtml(String(rawTitle1)) : '';
+    const popupTitle = rawPopupTitle ? escapeHtml(String(rawPopupTitle)) : '';
+    const popupDescription = rawPopupDescription ? escapeHtml(String(rawPopupDescription)) : '';
     const discountPercentage = rawDiscount ? escapeHtml(String(rawDiscount)) : '';
-    const description = rawDescription ? escapeHtml(String(rawDescription)) : '';
     const buttonText = rawButtonText ? escapeHtml(String(rawButtonText)) : '';
     const buttonUrl = layouts.buttonUrl || '';
-    const titleSize = layouts.titleSize || '20';
-    const title1Color = layouts.title1Color || '#FFFFFF';
+    const titleSize = settings.styles?.titleSize || '20';
+    const descriptionSize = settings.styles?.descriptionSize || '18';
     const discountColor = layouts.discountColor || '#FFFFFF';
     const descriptionColor = layouts.descriptionColor || '#F9E3D7';
     const buttonColor = layouts.buttonColor || '#D4A574';
     const disclaimerColor = layouts.disclaimerColor || '#2B1A11';
     const disclaimer = rawDisclaimer ? escapeHtml(String(rawDisclaimer)) : '';
+    // Use textColor from styles for title color, fallback to white
+    const titleColor = settings.styles?.textColor || '#FFFFFF';
 
     // Render Layout 1 - render even if minimal content
     if (selectedLayout === 'layout-1') {
       console.log('[Banner Embed] Rendering layout-1 with escaped data:', {
-        title1,
+        popupTitle,
+        popupDescription,
         discountPercentage,
-        description,
         buttonText,
         buttonUrl,
         disclaimer,
         backgroundImageUrl,
-        hasTitle1: !!title1,
+        hasTitle: !!popupTitle,
         hasDiscount: !!discountPercentage,
-        hasDescription: !!description,
+        hasDescription: !!popupDescription,
         hasButton: !!buttonText
       });
       
@@ -543,7 +550,7 @@
             ">
               ×
             </button>
-            ${title1 ? `
+            ${popupTitle ? `
               <div style="
                 position: absolute;
                 top: 100px;
@@ -551,7 +558,7 @@
                 transform: translateX(-50%);
                 text-align: center;
                 font-family: serif;
-                color: ${title1Color};
+                color: ${titleColor};
                 font-size: ${titleSize}px;
                 font-weight: 600;
                 text-transform: uppercase;
@@ -560,7 +567,7 @@
                 padding: 0 24px;
                 z-index: 2;
               ">
-                ${title1}
+                ${popupTitle}
               </div>
             ` : ''}
             ${discountPercentage ? `
@@ -583,7 +590,7 @@
                 ${discountPercentage}
               </div>
             ` : ''}
-            ${description ? `
+            ${popupDescription ? `
               <div style="
                 position: absolute;
                 top: 220px;
@@ -592,7 +599,7 @@
                 text-align: center;
                 font-family: Georgia, 'Times New Roman', serif;
                 color: ${descriptionColor};
-                font-size: ${titleSize || '18'}px;
+                font-size: ${descriptionSize}px;
                 font-weight: 400;
                 line-height: 1.5;
                 width: 100%;
@@ -601,7 +608,7 @@
                 word-wrap: break-word;
                 z-index: 2;
               ">
-                ${description}
+                ${popupDescription}
               </div>
             ` : ''}
             ${buttonText ? `
@@ -708,6 +715,7 @@
       const borderColor = styles.borderColor || '#C9A876';
       const textColor = styles.textColor || '#000000';
       const urlColor = styles.urlColor || '#000000';
+      const backgroundColor = styles.backgroundColor || '#FFFFFF';
 
       console.log('[Banner Embed] Rendering layout-3 with data:', {
         text,
@@ -718,7 +726,8 @@
         borderSize,
         borderColor,
         textColor,
-        urlColor
+        urlColor,
+        backgroundColor
       });
 
       // Load Sour Gummy font from Google Fonts
@@ -747,7 +756,7 @@
             position: relative;
             width: 568px;
             height: 565px;
-            background-color: #FFFFFF;
+            background-color: ${backgroundColor};
             border-radius: 20px;
             overflow: hidden;
             display: flex;
@@ -777,7 +786,7 @@
             <!-- Left section - text content -->
             <div style="
               flex: 2;
-              background-color: #FFFFFF;
+              background-color: ${backgroundColor};
               position: relative;
             ">
               <!-- Top decorative bars -->
