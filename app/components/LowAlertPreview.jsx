@@ -17,7 +17,6 @@ export default function LowAlertPreview({ settings }) {
     const iconStyle = {
       width: '20px',
       height: '20px',
-      marginRight: '8px',
       color: '#d72c0d',
       display: 'inline-block',
     };
@@ -155,11 +154,12 @@ export default function LowAlertPreview({ settings }) {
     color: '#2c6ecb',
     fontSize: `${Math.max(fontSize - 1, 12)}px`,
     fontWeight: 600,
+    fontFamily: fontFamily,
   };
 
   const messageStyles = {
-    fontWeight: 600,
-    fontFamily,
+    fontWeight: 'bold',
+    fontFamily: fontFamily,
     fontSize: `${fontSize}px`,
     color: textColor,
   };
@@ -167,7 +167,8 @@ export default function LowAlertPreview({ settings }) {
   const quantityTextStyles = {
     fontSize: `${Math.max(fontSize - 2, 11)}px`,
     color: '#5c5f62',
-    fontWeight: 500,
+    fontWeight: 'bold',
+    fontFamily: fontFamily,
   };
 
   return (
@@ -256,6 +257,7 @@ export default function LowAlertPreview({ settings }) {
                   fontSize: `${Math.max(fontSize - 1, 12)}px`,
                   color: textColor,
                   lineHeight: 1.3,
+                  fontFamily: fontFamily,
                 }}
               >
                 {sampleProduct.title}

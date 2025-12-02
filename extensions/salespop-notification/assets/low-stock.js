@@ -16,7 +16,6 @@
   let alertTimeout = null;
   let alertInterval = null;
   let isAlertVisible = false;
-  let alertStartTime = null;
 
   function normalizeShopDomain(shop) {
     if (!shop || typeof shop !== 'string') {
@@ -187,7 +186,7 @@
   }
 
   function renderIcon(iconType) {
-    const iconStyle = 'width: 16px; height: 16px; margin-right: 8px; color: #d72c0d; display: inline-block;';
+    const iconStyle = 'width: 16px; height: 16px; color: #d72c0d; display: inline-block;';
     
     const icons = {
       warning: `<svg viewBox="0 0 20 20" fill="currentColor" style="${iconStyle}"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`,
@@ -320,6 +319,7 @@
     }
 
     detailsContainer.style.paddingRight = settings.showCloseButton ? '32px' : '0';
+    detailsContainer.style.fontFamily = fontFamily;
 
     const nameStyles = {
       fontWeight: '600',
@@ -327,6 +327,7 @@
       color: textColor,
       display: 'block',
       lineHeight: '1.3',
+      fontFamily: fontFamily,
     };
     const quantityRowStyles = {
       display: 'flex',
@@ -336,12 +337,14 @@
       fontSize: `${Math.max((settings.fontSize || 14) - 1, 12)}px`,
       fontWeight: '600',
       lineHeight: '1.3',
+      fontFamily: fontFamily,
     };
     const quantityTextStyles = {
       fontSize: `${Math.max((settings.fontSize || 14) - 2, 11)}px`,
       color: '#5c5f62',
-      fontWeight: '500',
+      fontWeight: 'bold',
       display: 'block',
+      fontFamily: fontFamily,
     };
 
     const messageEl =
@@ -411,6 +414,11 @@
       const baseMessage = settings.customMessage || 'Hurry! Only {stock} left in stock.';
       const message = processMessage(baseMessage, stockValue);
       messageEl.textContent = message;
+      // Ensure message has proper font styling
+      messageEl.style.fontWeight = 'bold';
+      messageEl.style.fontFamily = fontFamily;
+      messageEl.style.fontSize = `${fontSize}px`;
+      messageEl.style.color = textColor;
     }
 
     // Show/hide close button
@@ -428,7 +436,6 @@
     container.style.display = 'block';
     alert.style.display = 'inline-flex';
     isAlertVisible = true;
-    alertStartTime = Date.now();
 
     // Auto-hide after duration
     const showAlertFor = parseInt(settings.showAlertFor) || 0;
@@ -449,7 +456,6 @@
     }
     container.style.display = 'none';
     isAlertVisible = false;
-    alertStartTime = null;
 
     if (alertTimeout) {
       clearTimeout(alertTimeout);
