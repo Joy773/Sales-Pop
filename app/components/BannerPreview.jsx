@@ -34,6 +34,7 @@ export default function BannerPreview({settings}) {
 
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef(null);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
 
   const handleCopyCode = async () => {
     if (!discountCode) return;
@@ -233,26 +234,28 @@ export default function BannerPreview({settings}) {
       >
         {description}
       </Text>
-      {shouldShowContactInput && (
-        <input
-          type={contactInputType}
-          placeholder={contactPlaceholder}
-          disabled
-          style={{
-            width: '100%',
-            maxWidth: '320px',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            border: '1px solid rgba(15, 118, 110, 0.18)',
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            boxShadow: 'inset 0 1px 2px rgba(15, 118, 110, 0.08)',
-            fontSize: '14px',
-            color: '#111827',
-          }}
-        />
+      {shouldShowContactInput && !(popupSelection === 'subscribe-discount' && emailSubmitted) && (
+        <>
+          <input
+            type={contactInputType}
+            placeholder={contactPlaceholder}
+            disabled
+            style={{
+              width: '100%',
+              maxWidth: '320px',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: '1px solid rgba(15, 118, 110, 0.18)',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              boxShadow: 'inset 0 1px 2px rgba(15, 118, 110, 0.08)',
+              fontSize: '14px',
+              color: '#111827',
+            }}
+          />
+        </>
       )}
       {(popupSelection === 'offer-discount' ||
-        popupSelection === 'subscribe-discount') &&
+        (popupSelection === 'subscribe-discount' && emailSubmitted)) &&
         discountCode && (
         <div
           onClick={handleCopyCode}
@@ -260,14 +263,23 @@ export default function BannerPreview({settings}) {
             marginTop: '8px',
             padding: '10px 16px',
             borderRadius: '12px',
-            background:
-              'linear-gradient(120deg, rgba(34,197,94,0.12), rgba(59,130,246,0.12))',
-            border: '1px solid rgba(34, 197, 94, 0.25)',
+            ...(selectedLayout === 'layout-2' && template?.preview?.accent ? {
+              backgroundColor: template.preview.accent,
+              border: `1px solid ${template.preview.accent}`,
+              color: '#FFFFFF',
+            } : {
+              background: 'linear-gradient(120deg, rgba(34,197,94,0.12), rgba(59,130,246,0.12))',
+              border: '1px solid rgba(34, 197, 94, 0.25)',
+              color: '#064e3b',
+            }),
             fontWeight: 600,
-            color: '#064e3b',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '2px',
+            ...(selectedLayout === 'layout-2' ? {
+              justifyContent: 'space-between',
+              width: '100%',
+            } : {}),
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             userSelect: 'none',
@@ -281,16 +293,53 @@ export default function BannerPreview({settings}) {
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
-          <span>{copied ? 'Copied!' : 'Code:'}</span>
-          <span style={{fontFamily: 'monospace', letterSpacing: '0.05em'}}>
-            {discountCode}
-          </span>
+          {selectedLayout === 'layout-2' ? (
+            <>
+              <span style={{fontFamily: 'monospace', letterSpacing: '0.05em'}}>
+                {copied ? 'Copied!' : discountCode}
+              </span>
+              {!copied && (
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{marginLeft: 'auto', flexShrink: 0}}
+                >
+                  <path 
+                    d="M5.5 4V3C5.5 2.17157 6.17157 1.5 7 1.5H11C11.8284 1.5 12.5 2.17157 12.5 3V7C12.5 7.82843 11.8284 8.5 11 8.5H10" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                  />
+                  <path 
+                    d="M4 5.5C3.17157 5.5 2.5 6.17157 2.5 7V11C2.5 11.8284 3.17157 12.5 4 12.5H8C8.82843 12.5 9.5 11.8284 9.5 11V7C9.5 6.17157 8.82843 5.5 8 5.5H4Z" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              )}
+            </>
+          ) : (
+            <>
+              <span>{copied ? 'Copied!' : 'Code:'}</span>
+              <span style={{fontFamily: 'monospace', letterSpacing: '0.05em'}}>
+                {discountCode}
+              </span>
+            </>
+          )}
         </div>
       )}
       {(popupSelection === 'collect-email' ||
-        popupSelection === 'subscribe-discount') && (
+        (popupSelection === 'subscribe-discount' && !emailSubmitted)) && (
       <button
         type="button"
+        onClick={() => {
+          if (popupSelection === 'subscribe-discount') {
+            setEmailSubmitted(true);
+          }
+        }}
         style={{
           alignSelf: 'flex-start',
           backgroundColor: template.preview.cta,

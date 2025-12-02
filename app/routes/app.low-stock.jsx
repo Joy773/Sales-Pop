@@ -43,8 +43,6 @@ function deepEqual(a, b) {
   lowStockThreshold: "10",
   alertPosition: "top-left",
   showAlertFor: "",
-  showAlert: "all-page",
-  specificPageUrl: "",
   timeBeforeFirstAlert: "",
   gapBetweenAlerts: "",
   showCloseButton: false,

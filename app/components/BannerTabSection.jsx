@@ -10,7 +10,7 @@ import {
   Text,
   TextField,
 } from '@shopify/polaris';
-import {BANNER_TEMPLATES} from './bannerTemplates';
+import {BANNER_TEMPLATES, getTemplateById} from './bannerTemplates';
 
 const BASE_TABS = [
   {id: 'layouts', content: 'Layouts', panelID: 'layouts-content'},
@@ -107,6 +107,20 @@ export default function BannerTabSection({settings, onSettingsChange}) {
       ...prev,
       layouts: {...prev.layouts, [field]: value},
     }));
+
+  // Auto-update discountColor when template changes for layout-2
+  useEffect(() => {
+    if (layouts?.selectedLayout === 'layout-2' && styles?.selectedTemplate) {
+      const template = getTemplateById(styles.selectedTemplate);
+      if (template && template.preview && template.preview.accent) {
+        // Update discountColor to match template accent color
+        onSettingsChange((prev) => ({
+          ...prev,
+          layouts: {...prev.layouts, discountColor: template.preview.accent},
+        }));
+      }
+    }
+  }, [styles?.selectedTemplate, layouts?.selectedLayout, onSettingsChange]);
 
   const handleTabChange = (selectedIndex) => {
     setSelectedTab(selectedIndex);
@@ -441,23 +455,6 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                 ]}
                 value={layouts?.showBannerTo || 'homepage'}
                 onChange={(value) => updateLayouts('showBannerTo', value)}
-              />
-            </Box>
-            <Box style={{ marginTop: '16px' }}>
-              <TextField
-                label="Border Size"
-                value={layouts?.borderSize || '1'}
-                onChange={(value) => {
-                  const numValue = parseInt(value, 10);
-                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= 10)) {
-                    updateLayouts('borderSize', value);
-                  }
-                }}
-                placeholder="Enter border size (1-10)"
-                autoComplete="off"
-                type="number"
-                min="1"
-                max="10"
               />
             </Box>
             <Box style={{ marginTop: '16px' }}>
@@ -916,6 +913,23 @@ export default function BannerTabSection({settings, onSettingsChange}) {
                 </span>
               </div>
             </div>
+          </Box>
+          <Box style={{ marginTop: '16px' }}>
+            <TextField
+              label="Border Size"
+              value={layouts?.borderSize || '1'}
+              onChange={(value) => {
+                const numValue = parseInt(value, 10);
+                if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= 10)) {
+                  updateLayouts('borderSize', value);
+                }
+              }}
+              placeholder="Enter border size (1-10)"
+              autoComplete="off"
+              type="number"
+              min="1"
+              max="10"
+            />
           </Box>
           <Box style={{ marginTop: '16px' }}>
             <Text as="label" variant="bodyMd" fontWeight="medium">

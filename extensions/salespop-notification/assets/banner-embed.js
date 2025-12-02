@@ -1283,29 +1283,48 @@
           </div>
         `;
 
+    // Check if layout-2 is selected and use template accent color
+    const selectedLayout = settings.layouts?.selectedLayout;
+    const isLayout2 = selectedLayout === 'layout-2';
+    const discountCodeStyle = isLayout2 && template?.accent
+      ? `background-color: ${template.accent}; border: 1px solid ${template.accent}; color: #FFFFFF;`
+      : `background: linear-gradient(120deg, rgba(34,197,94,0.12), rgba(59,130,246,0.12)); border: 1px solid rgba(34, 197, 94, 0.25); color: #064e3b;`;
+
+    // For subscribe-discount, initially hide the discount code (will be revealed after email submission)
+    const shouldHideDiscountCode = popupSelection === 'subscribe-discount';
+    
     const discountMarkup =
       (popupSelection === 'offer-discount' || popupSelection === 'subscribe-discount') &&
       discountCode
         ? `
-            <div class="salespop-discount-code" data-code="${discountCode}" style="
+            <div class="salespop-discount-code" data-code="${discountCode}" data-reveal="${!shouldHideDiscountCode}" style="
               margin-top: 8px;
               padding: 10px 16px;
               border-radius: 12px;
-              background: linear-gradient(120deg, rgba(34,197,94,0.12), rgba(59,130,246,0.12));
-              border: 1px solid rgba(34, 197, 94, 0.25);
+              ${discountCodeStyle}
               font-weight: 600;
-              color: #064e3b;
-              display: inline-flex;
+              display: ${shouldHideDiscountCode ? 'none' : 'inline-flex'};
               align-items: center;
               gap: 4px;
+              ${isLayout2 ? 'justify-content: space-between; width: 100%;' : ''}
               cursor: pointer;
               transition: all 0.2s ease;
               user-select: none;
             ">
-              <span class="salespop-discount-label">Code:</span>
-              <span style="font-family: monospace; letter-spacing: 0.05em;">
-                ${discountCode}
-              </span>
+              ${isLayout2 ? `
+                <span style="font-family: monospace; letter-spacing: 0.05em;">
+                  ${discountCode}
+                </span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: auto; flex-shrink: 0;">
+                  <path d="M5.5 4V3C5.5 2.17157 6.17157 1.5 7 1.5H11C11.8284 1.5 12.5 2.17157 12.5 3V7C12.5 7.82843 11.8284 8.5 11 8.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M4 5.5C3.17157 5.5 2.5 6.17157 2.5 7V11C2.5 11.8284 3.17157 12.5 4 12.5H8C8.82843 12.5 9.5 11.8284 9.5 11V7C9.5 6.17157 8.82843 5.5 8 5.5H4Z" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              ` : `
+                <span class="salespop-discount-label">Code:</span>
+                <span style="font-family: monospace; letter-spacing: 0.05em;">
+                  ${discountCode}
+                </span>
+              `}
             </div>
           `
         : '';
@@ -1543,6 +1562,10 @@
     if (discountCodeEl) {
       const codeValue = discountCodeEl.getAttribute('data-code');
       const labelEl = discountCodeEl.querySelector('.salespop-discount-label');
+      const codeSpan = discountCodeEl.querySelector('span[style*="monospace"]');
+      const copyIcon = discountCodeEl.querySelector('svg');
+      // Check if layout-2 based on discount code element structure (has SVG icon and no label)
+      const isLayout2Element = copyIcon !== null && labelEl === null;
       let copyTimeout = null;
 
       discountCodeEl.addEventListener('click', async () => {
@@ -1553,6 +1576,7 @@
           
           // Show "Copied!" feedback
           if (labelEl) {
+            // For non-layout-2: update the label
             const originalText = labelEl.textContent;
             labelEl.textContent = 'Copied!';
             
@@ -1562,6 +1586,25 @@
             copyTimeout = setTimeout(() => {
               if (labelEl) {
                 labelEl.textContent = originalText;
+              }
+            }, 2000);
+          } else if (codeSpan && isLayout2Element) {
+            // For layout-2: update the code span and hide icon
+            const originalText = codeSpan.textContent;
+            codeSpan.textContent = 'Copied!';
+            if (copyIcon) {
+              copyIcon.style.display = 'none';
+            }
+            
+            if (copyTimeout) {
+              clearTimeout(copyTimeout);
+            }
+            copyTimeout = setTimeout(() => {
+              if (codeSpan) {
+                codeSpan.textContent = originalText;
+              }
+              if (copyIcon) {
+                copyIcon.style.display = '';
               }
             }, 2000);
           }
@@ -1629,9 +1672,27 @@
             submitBtn.textContent = successButtonText;
             form.reset();
 
-            window.setTimeout(() => {
-              hideBanner(root);
-            }, 2000);
+            // If subscribe-discount, reveal the discount code after successful submission
+            if (popupSelection === 'subscribe-discount') {
+              const discountCodeEl = root.querySelector('.salespop-discount-code');
+              if (discountCodeEl) {
+                discountCodeEl.style.display = 'inline-flex';
+                discountCodeEl.setAttribute('data-reveal', 'true');
+                
+                // Hide the form after revealing discount code
+                form.style.display = 'none';
+                
+                // Optionally hide the feedback message after a delay, or keep it visible
+                // The discount code is now visible, so users can copy it
+              }
+            }
+
+            // Only auto-hide banner if NOT subscribe-discount (keep it visible so users can copy code)
+            if (popupSelection !== 'subscribe-discount') {
+              window.setTimeout(() => {
+                hideBanner(root);
+              }, 2000);
+            }
           } catch (error) {
             console.error('[Banner Embed] Failed to submit contact:', error);
             feedback.textContent = error?.message

@@ -9,8 +9,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
   const [lowStockThreshold, setLowStockThreshold] = useState(settings?.lowStockThreshold || "10");
   const [alertPosition, setAlertPosition] = useState(settings?.alertPosition || "top-left");
   const [showAlertFor, setShowAlertFor] = useState(settings?.showAlertFor || "");
-  const [showAlert, setShowAlert] = useState(settings?.showAlert || "all-page");
-  const [specificPageUrl, setSpecificPageUrl] = useState(settings?.specificPageUrl || "");
   const [timeBeforeFirstAlert, setTimeBeforeFirstAlert] = useState(settings?.timeBeforeFirstAlert || "");
   const [gapBetweenAlerts, setGapBetweenAlerts] = useState(settings?.gapBetweenAlerts || "");
   const [showCloseButton, setShowCloseButton] = useState(settings?.showCloseButton || false);
@@ -27,12 +25,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
     { label: 'Top right', value: 'top-right' },
     { label: 'Bottom Left', value: 'bottom-left' },
     { label: 'Bottom right', value: 'bottom-right' },
-  ];
-
-  const showAlertOptions = [
-    { label: 'All page', value: 'all-page' },
-    { label: 'Homepage', value: 'homepage' },
-    { label: 'Specific page', value: 'specific-page' },
   ];
 
   const fontFamilyOptions = [
@@ -82,8 +74,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
       settings.lowStockThreshold !== prevSettings?.lowStockThreshold ||
       settings.alertPosition !== prevSettings?.alertPosition ||
       settings.showAlertFor !== prevSettings?.showAlertFor ||
-      settings.showAlert !== prevSettings?.showAlert ||
-      settings.specificPageUrl !== prevSettings?.specificPageUrl ||
       settings.timeBeforeFirstAlert !== prevSettings?.timeBeforeFirstAlert ||
       settings.gapBetweenAlerts !== prevSettings?.gapBetweenAlerts ||
       settings.showCloseButton !== prevSettings?.showCloseButton ||
@@ -100,8 +90,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
       if (settings.lowStockThreshold !== undefined) setLowStockThreshold(settings.lowStockThreshold);
       if (settings.alertPosition !== undefined) setAlertPosition(settings.alertPosition);
       if (settings.showAlertFor !== undefined) setShowAlertFor(settings.showAlertFor);
-      if (settings.showAlert !== undefined) setShowAlert(settings.showAlert);
-      if (settings.specificPageUrl !== undefined) setSpecificPageUrl(settings.specificPageUrl);
       if (settings.timeBeforeFirstAlert !== undefined) setTimeBeforeFirstAlert(settings.timeBeforeFirstAlert);
       if (settings.gapBetweenAlerts !== undefined) setGapBetweenAlerts(settings.gapBetweenAlerts);
       if (settings.showCloseButton !== undefined) setShowCloseButton(settings.showCloseButton);
@@ -142,8 +130,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
       lowStockThreshold,
       alertPosition,
       showAlertFor,
-      showAlert,
-      specificPageUrl,
       timeBeforeFirstAlert,
       gapBetweenAlerts,
       showCloseButton,
@@ -155,7 +141,7 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
     };
     
     onSettingsChange(currentSettings);
-  }, [customMessage, lowStockThreshold, alertPosition, showAlertFor, showAlert, specificPageUrl, timeBeforeFirstAlert, gapBetweenAlerts, showCloseButton, fontFamily, fontSize, icon, animationEffect, textColor, onSettingsChange]);
+  }, [customMessage, lowStockThreshold, alertPosition, showAlertFor, timeBeforeFirstAlert, gapBetweenAlerts, showCloseButton, fontFamily, fontSize, icon, animationEffect, textColor, onSettingsChange]);
 
   const renderSettingsContent = () => {
     return (
@@ -198,23 +184,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
               autoComplete="off"
               placeholder="Enter seconds"
             />
-            <Select
-              label="Show alert"
-              options={showAlertOptions}
-              value={showAlert}
-              onChange={setShowAlert}
-              placeholder="Select page"
-            />
-            {showAlert === 'specific-page' && (
-              <TextField
-                label="Page URL"
-                value={specificPageUrl}
-                onChange={setSpecificPageUrl}
-                placeholder="/pages/about-us or /products/product-name"
-                autoComplete="off"
-                helpText="Enter the page URL where you want the alert to appear"
-              />
-            )}
             <TextField
               label="Time before first alert"
               type="number"

@@ -13,7 +13,6 @@
   const FALLBACK_IMAGE = 'https://burst.shopifycdn.com/photos/green-t-shirt.jpg';
   let settings = null;
   let products = [];
-  let productCursor = 0;
   let alertTimeout = null;
   let alertInterval = null;
   let isAlertVisible = false;
@@ -136,38 +135,49 @@
   function shouldShowOnPage(settings) {
     if (!settings) return false;
 
-    const showAlert = settings.showAlert || 'all-page';
+    // Only show on product pages
     const currentPath = window.location.pathname || '/';
-    const normalizedPath = currentPath.replace(/\/$/, '') || '/';
-
-    if (showAlert === 'homepage') {
-      return normalizedPath === '/' || normalizedPath === '';
+    const isProductPage = currentPath.startsWith('/products/');
+    
+    if (!isProductPage) {
+      return false;
     }
 
-    if (showAlert === 'specific-page') {
-      const specificPageUrl = settings.specificPageUrl || '';
-      if (!specificPageUrl) return false;
-
-      // Normalize the specific page URL
-      let normalizedSpecificUrl = specificPageUrl.trim();
-      if (normalizedSpecificUrl.startsWith('http://') || normalizedSpecificUrl.startsWith('https://')) {
-        try {
-          const url = new URL(normalizedSpecificUrl);
-          normalizedSpecificUrl = url.pathname;
-        } catch (e) {
-          console.warn('[Low Stock Alert] Invalid URL format:', normalizedSpecificUrl);
-          return false;
-        }
-      }
-      if (!normalizedSpecificUrl.startsWith('/')) {
-        normalizedSpecificUrl = '/' + normalizedSpecificUrl;
-      }
-      normalizedSpecificUrl = normalizedSpecificUrl.replace(/\/$/, '') || '/';
-
-      return normalizedPath === normalizedSpecificUrl;
+    // Extract product handle from URL (e.g., /products/snowboard -> snowboard)
+    const productHandleMatch = currentPath.match(/^\/products\/([^/]+)/);
+    if (!productHandleMatch) {
+      return false;
     }
-
-    // Default: all-page
+    
+    const currentProductHandle = productHandleMatch[1];
+    
+    // Check if current product has low stock
+    if (!products || products.length === 0) {
+      return false;
+    }
+    
+    // Find if any product with low stock matches the current product handle
+    const matchingProduct = products.find(product => {
+      return product.handle === currentProductHandle;
+    });
+    
+    if (!matchingProduct) {
+      console.log(`[Low Stock Alert] Current product "${currentProductHandle}" is not in low stock list`);
+      return false;
+    }
+    
+    // Check if the matching product has any variants with low stock
+    const hasLowStockVariants = matchingProduct.variants && matchingProduct.variants.some(variant => {
+      const qty = Number(variant.inventoryQuantity);
+      return Number.isFinite(qty) && qty > 0;
+    });
+    
+    if (!hasLowStockVariants) {
+      console.log(`[Low Stock Alert] Product "${currentProductHandle}" has no variants with low stock`);
+      return false;
+    }
+    
+    console.log(`[Low Stock Alert] Product "${currentProductHandle}" has low stock - showing alert`);
     return true;
   }
 
@@ -452,35 +462,47 @@
       return null;
     }
 
-    for (let i = 0; i < products.length; i++) {
-      const product = products[productCursor];
-      productCursor = (productCursor + 1) % products.length;
-
-      const variants = product.variants || [];
-      const availableVariants = variants.filter((variant) => {
-        const qty = Number(variant.inventoryQuantity);
-        return Number.isFinite(qty) && qty > 0;
-      });
-
-      const candidateVariants = availableVariants.length > 0 ? availableVariants : variants;
-      if (!candidateVariants.length) {
-        continue;
-      }
-
-      const variant = candidateVariants[Math.floor(Math.random() * candidateVariants.length)];
-      const quantity = Number(variant.inventoryQuantity);
-      if (!Number.isFinite(quantity) || quantity <= 0) {
-        continue;
-      }
-
-      return {
-        product,
-        variant,
-        quantity,
-      };
+    // Get current product handle from URL
+    const currentPath = window.location.pathname || '/';
+    const productHandleMatch = currentPath.match(/^\/products\/([^/]+)/);
+    if (!productHandleMatch) {
+      return null;
+    }
+    
+    const currentProductHandle = productHandleMatch[1];
+    
+    // Find the current product in the low stock products list
+    const currentProduct = products.find(product => product.handle === currentProductHandle);
+    if (!currentProduct) {
+      console.warn(`[Low Stock Alert] Current product "${currentProductHandle}" not found in low stock list`);
+      return null;
     }
 
-    return null;
+    // Get variants for the current product only
+    const variants = currentProduct.variants || [];
+    const availableVariants = variants.filter((variant) => {
+      const qty = Number(variant.inventoryQuantity);
+      return Number.isFinite(qty) && qty > 0;
+    });
+
+    const candidateVariants = availableVariants.length > 0 ? availableVariants : variants;
+    if (!candidateVariants.length) {
+      console.warn(`[Low Stock Alert] No variants available for product "${currentProductHandle}"`);
+      return null;
+    }
+
+    // Select a random variant from the current product
+    const variant = candidateVariants[Math.floor(Math.random() * candidateVariants.length)];
+    const quantity = Number(variant.inventoryQuantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return null;
+    }
+
+    return {
+      product: currentProduct,
+      variant,
+      quantity,
+    };
   }
 
   function checkAndShowAlert() {
