@@ -14,14 +14,14 @@ const CAMPAIGNS = [
   //   link: "/app/sales-pop",
   //   key: "sales-pop"
   // },
-  // {
-  //   type: "Visitors Count",
-  //   title: "Visitor Count- Social Proof",
-  //   subtitle: "Display the number of visitors at a specific time to show how popular your store is.",
-  //   image: null,
-  //   link: "/app/visitor-count",
-  //   key: "visitor-count"
-  // },
+  {
+    type: "Visitors Count",
+    title: "Visitor Count- Social Proof",
+    subtitle: "Display the number of visitors at a specific time to show how popular your store is.",
+    image: null,
+    link: "/app/visitor-count",
+    key: "visitor-count"
+  },
   // {
   //   type: "Order Count",
   //   title: "Sold Count- Social Proof",

@@ -7,7 +7,11 @@
 
   const CONTAINER_ID = 'salespop-visitor-count-container';
   const WIDGET_ID = 'salespop-visitor-count-widget';
-  const PUBLIC_API_ENDPOINT = '/api/public/visitor-count';
+  const POLL_INTERVAL = 10000; // Poll every 10 seconds
+
+  let pollingIntervalId = null;
+  let currentWidget = null;
+  let currentSettings = null;
 
   function getShop() {
     const meta = document.querySelector('meta[name="shop"]');
@@ -23,6 +27,7 @@
     if (window.SalesPopAppUrl) return window.SalesPopAppUrl;
     return null;
   }
+
 
   function createContainer() {
     let container = document.getElementById(CONTAINER_ID);
@@ -288,33 +293,156 @@
         }
       }, 300);
     }
+    // Stop polling when widget is hidden
+    stopPolling();
+  }
+
+  function stopPolling() {
+    if (pollingIntervalId !== null) {
+      clearInterval(pollingIntervalId);
+      pollingIntervalId = null;
+      console.debug('[Visitor Count] Polling stopped');
+    }
+  }
+
+  function getOrCreateBrowserId() {
+    const STORAGE_KEY = 'salespop_visitor_browser_id';
+    let browserId = localStorage.getItem(STORAGE_KEY);
+    
+    if (!browserId) {
+      // Generate a unique browser ID
+      browserId = 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      try {
+        localStorage.setItem(STORAGE_KEY, browserId);
+      } catch (e) {
+        console.warn('[Visitor Count] Could not store browser ID in localStorage:', e);
+      }
+    }
+    
+    return browserId;
+  }
+
+  function getOrCreateSessionId() {
+    const STORAGE_KEY = 'salespop_visitor_session_id';
+    let sessionId = sessionStorage.getItem(STORAGE_KEY);
+    
+    if (!sessionId) {
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      try {
+        sessionStorage.setItem(STORAGE_KEY, sessionId);
+      } catch (e) {
+        console.warn('[Visitor Count] Could not store session ID in sessionStorage:', e);
+      }
+    }
+    
+    return sessionId;
+  }
+
+  async function trackVisitorEvent(shop, appUrl) {
+    const browserId = getOrCreateBrowserId();
+    const sessionId = getOrCreateSessionId();
+    
+    const eventPayload = {
+      shop: shop.trim().toLowerCase(),
+      timestamp: new Date().toISOString(),
+      eventId: 'visit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      browserId: browserId,
+      sessionId: sessionId,
+      pageUrl: window.location.href,
+      referer: document.referrer || null,
+      title: document.title || null,
+      locale: navigator.language || null,
+      userAgent: navigator.userAgent || null,
+      source: 'pixel',
+    };
+
+    // Track using Shopify app pixel if available
+    if (window.Shopify && window.Shopify.analytics && window.Shopify.analytics.publish) {
+      try {
+        window.Shopify.analytics.publish('salespop_visitor_visit', eventPayload);
+        console.debug('[Visitor Count] ✓ Published visitor event via Shopify analytics pixel');
+      } catch (pixelError) {
+        console.warn('[Visitor Count] Failed to publish via Shopify pixel:', pixelError);
+      }
+    }
+
+    // Use public API
+    if (appUrl) {
+      const eventUrl = `${appUrl.replace(/\/$/, '')}/api/visitor-count/event`;
+      try {
+        const response = await fetch(eventUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(eventPayload),
+          mode: 'cors',
+          credentials: 'omit',
+        });
+
+        if (response.ok) {
+          console.debug('[Visitor Count] ✓ Recorded visitor event via public API');
+        } else {
+          console.warn('[Visitor Count] Public API returned non-OK status:', response.status);
+        }
+      } catch (apiError) {
+        console.warn('[Visitor Count] Failed to record event via public API:', apiError.message);
+      }
+    } else {
+      console.warn('[Visitor Count] App URL not available, skipping event recording');
+    }
   }
 
   async function fetchVisitorData(shop, appUrl) {
-    const params = new URLSearchParams();
-    params.set('shop', shop);
-
-    const publicUrl = appUrl
-      ? `${appUrl.replace(/\/$/, '')}${PUBLIC_API_ENDPOINT}?${params.toString()}`
-      : null;
-
-    if (!publicUrl) {
-      console.warn('[Visitor Count] Public API URL unavailable, aborting fetch');
+    if (!appUrl) {
+      console.warn('[Visitor Count] App URL unavailable, aborting fetch');
       return { data: null, source: 'unavailable' };
     }
 
+    const params = new URLSearchParams();
+    params.set('shop', shop);
+
+    const publicUrl = `${appUrl.replace(/\/$/, '')}/api/public/visitor-count?${params.toString()}`;
+
     try {
-      const publicResponse = await fetch(publicUrl, { mode: 'cors', credentials: 'omit' });
-      if (!publicResponse.ok) {
-        throw new Error(`Public API returned ${publicResponse.status}`);
+      const response = await fetch(publicUrl, { mode: 'cors', credentials: 'omit' });
+      if (!response.ok) {
+        throw new Error(`Public API returned ${response.status}`);
       }
-      const data = await publicResponse.json();
+      const data = await response.json();
       console.debug('[Visitor Count] ✓ Loaded data via public API', data);
       return { data, source: 'public_api' };
-    } catch (publicError) {
-      console.error('[Visitor Count] ✗ Failed to load visitor data from public API:', publicError.message);
-      return { data: null, source: 'error', error: publicError };
+    } catch (error) {
+      console.error('[Visitor Count] ✗ Failed to load visitor data from public API:', error.message);
+      return { data: null, source: 'error', error };
     }
+  }
+
+  async function updateVisitorCount(shop, appUrl, widget, settings) {
+    const { data, source } = await fetchVisitorData(shop, appUrl);
+    
+    if (!data || !data.success || source === 'disabled') {
+      if (source === 'disabled') {
+        console.debug('[Visitor Count] Campaign is disabled, stopping polling');
+        stopPolling();
+        hideWidget();
+      }
+      return;
+    }
+
+    const visitor = data.visitor || data.count || { count: 0 };
+    const currentCount = visitor.count || 0;
+    
+    // Only update if count changed
+    const widgetCount = widget.dataset.visitorCount;
+    if (widgetCount && Number(widgetCount) === currentCount) {
+      console.debug('[Visitor Count] Count unchanged, skipping update');
+      return;
+    }
+
+    console.debug('[Visitor Count] Updating count', { currentCount, previousCount: widgetCount });
+    renderContent(widget, settings, visitor);
+    widget.dataset.visitorCount = currentCount.toString();
   }
 
   async function init() {
@@ -325,14 +453,17 @@
     }
 
     const appUrl = getAppBaseUrl();
-    if (appUrl) {
-      console.debug('[Visitor Count] App base URL detected:', appUrl);
-    } else {
-      console.warn('[Visitor Count] App base URL missing, ensure metafield or global variable is set');
+    if (!appUrl) {
+      console.warn('[Visitor Count] App URL missing, aborting initialization');
+      return;
     }
+
+    // Track visitor event first (before fetching data)
+    await trackVisitorEvent(shop, appUrl);
 
     const container = createContainer();
     const widget = createWidget(container);
+    currentWidget = widget;
 
     container.style.display = 'block';
 
@@ -344,6 +475,7 @@
     }
 
     const settings = normalizeSettings(data.settings || {});
+    currentSettings = settings;
     const visitor = data.visitor || data.count || { count: 0 };
 
     console.debug('[Visitor Count] Loaded payload', { settings, visitor, source });
@@ -356,9 +488,18 @@
 
     applyStyles(widget, settings);
     renderContent(widget, settings, visitor);
+    widget.dataset.visitorCount = (visitor.count || 0).toString();
 
     const delayMs = Number(settings.delayBeforeFirstPop) * 1000;
     showWidget(widget, Number.isFinite(delayMs) && delayMs > 0 ? delayMs : 0);
+
+    // Start polling for updates
+    pollingIntervalId = setInterval(() => {
+      if (currentWidget && currentSettings) {
+        updateVisitorCount(shop, appUrl, currentWidget, currentSettings);
+      }
+    }, POLL_INTERVAL);
+    console.debug('[Visitor Count] Started polling every', POLL_INTERVAL / 1000, 'seconds');
 
     if (settings.popupDuration) {
       const durationMs = Number(settings.popupDuration) * 1000;
@@ -377,6 +518,19 @@
       document.addEventListener('DOMContentLoaded', init, { once: true });
     }
   }
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    stopPolling();
+  });
+
+  // Cleanup on visibility change (when tab becomes hidden)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Optionally pause polling when tab is hidden
+      // stopPolling();
+    }
+  });
 
   bootstrap();
 })();

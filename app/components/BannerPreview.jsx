@@ -3,7 +3,16 @@ import {getTemplateById} from './bannerTemplates';
 import {useState, useRef, useEffect} from 'react';
 
 const DEFAULT_IMAGE =
-  'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png';
+  'https://marketplace.canva.com/EAGWX_Y528I/1/0/900w/canva-pink-and-beige-cute-aesthetic-background-your-story-7zvxj2T1VSk.jpg';
+
+const LAYOUT_2_IMAGE =
+  'https://cdn.thewirecutter.com/wp-content/media/2025/09/BEST-MENS-WHITE-TEES-SUB-2048px-5929.jpg?auto=webp&quality=75&width=1024';
+
+const LAYOUT_3_IMAGE =
+  'https://files.cdn.printful.com/o/upload/bfl-image/f5/10333_l_collage%20vintage%20design%20.jpg';
+
+const LAYOUT_4_IMAGE =
+  'https://static.vecteezy.com/system/resources/previews/002/453/548/non_2x/sale-discount-banner-template-promotion-illustration-free-vector.jpg';
 
 export default function BannerPreview({settings}) {
   const {
@@ -16,13 +25,24 @@ export default function BannerPreview({settings}) {
   const layout = styles.popoutLayout?.[0] || 'image-left';
   const selectedLayout = layouts?.selectedLayout;
   const backgroundImageUrl = (styles.backgroundImageUrl ?? '').trim();
-  const imageUrl = backgroundImageUrl || DEFAULT_IMAGE;
+  const imageUrl = backgroundImageUrl || (selectedLayout === 'layout-2' ? LAYOUT_2_IMAGE : DEFAULT_IMAGE);
 
   const heading = goal.popupTitle || 'Welcome to our store';
   const description =
     goal.popupDescription ||
     'Share a short message to encourage shoppers to subscribe.';
   const buttonLabel = goal.buttonText || 'Join now';
+  
+  // Layout 1 fallback values
+  const discountPercentage = layouts?.discountPercentage || '35%';
+  const buttonText = layouts?.buttonText || 'SHOP NOW';
+  const disclaimer = layouts?.disclaimer || 'Terms and conditions apply';
+  
+  // Layout 3 fallback values
+  const layout3Text = layouts?.text || 'Special Offer';
+  const layout3DiscountText = layouts?.discountText || '50';
+  const layout3BrandName = layouts?.brandName || 'Your Brand';
+  const layout3UrlName = layouts?.urlName || 'shopnow.com';
   const textSize = 16;
   const headingFontSize = 24;
   const popupSelection = goal.popupSelection?.[0];
@@ -415,7 +435,7 @@ export default function BannerPreview({settings}) {
               }}
             >
               <img
-                src={backgroundImageUrl || '/Layout_One.png'}
+                src={backgroundImageUrl || DEFAULT_IMAGE}
                 alt="Layout 1"
                 style={{
                   width: '100%',
@@ -445,27 +465,25 @@ export default function BannerPreview({settings}) {
                   {heading}
                 </div>
               )}
-              {layouts?.discountPercentage && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '145px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    textAlign: 'center',
-                    fontFamily: 'serif',
-                    color: layouts?.discountColor || '#FFFFFF',
-                    fontSize: '72px',
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    lineHeight: 1,
-                    width: '100%',
-                    padding: '0 24px',
-                  }}
-                >
-                  {layouts.discountPercentage}
-                </div>
-              )}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '145px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  textAlign: 'center',
+                  fontFamily: 'serif',
+                  color: layouts?.discountColor || '#000000',
+                  fontSize: '72px',
+                  fontWeight: 700,
+                  fontStyle: 'italic',
+                  lineHeight: 1,
+                  width: '100%',
+                  padding: '0 24px',
+                }}
+              >
+                {discountPercentage}
+              </div>
               {description && (
                 <div
                   style={{
@@ -475,7 +493,7 @@ export default function BannerPreview({settings}) {
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
                     fontFamily: "Georgia, 'Times New Roman', serif",
-                    color: layouts?.descriptionColor || '#F9E3D7',
+                    color: layouts?.descriptionColor || '#000000',
                     fontSize: `${styles?.descriptionSize || '18'}px`,
                     fontWeight: 400,
                     lineHeight: 1.5,
@@ -488,66 +506,62 @@ export default function BannerPreview({settings}) {
                   {description}
                 </div>
               )}
-              {layouts?.buttonText && (
-                <button
-                  type="button"
+              <button
+                type="button"
+                style={{
+                  position: 'absolute',
+                  top: '340px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: layouts?.buttonColor || '#D4A574',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '14px 24px',
+                  fontFamily: 'sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {buttonText}
+                <span style={{ fontSize: '18px' }}>→</span>
+              </button>
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '40px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  textAlign: 'center',
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  color: layouts?.disclaimerColor || '#2B1A11',
+                  fontSize: '14px',
+                  lineHeight: 1.4,
+                  width: '90%',
+                  maxWidth: '640px',
+                  opacity: 0.9,
+                  wordBreak: 'break-word',
+                }}
+              >
+                <span
                   style={{
-                    position: 'absolute',
-                    top: '340px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: layouts?.buttonColor || '#D4A574',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '14px 24px',
-                    fontFamily: 'sans-serif',
-                    fontSize: '16px',
                     fontWeight: 600,
-                    textTransform: 'uppercase',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {layouts.buttonText}
-                  <span style={{ fontSize: '18px' }}>→</span>
-                </button>
-              )}
-              {layouts?.disclaimer && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '40px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    textAlign: 'center',
-                    fontFamily: "Georgia, 'Times New Roman', serif",
                     color: layouts?.disclaimerColor || '#2B1A11',
-                    fontSize: '14px',
-                    lineHeight: 1.4,
-                    width: '90%',
-                    maxWidth: '640px',
-                    opacity: 0.9,
-                    wordBreak: 'break-word',
+                    marginRight: '6px',
                   }}
                 >
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      color: layouts?.disclaimerColor || '#2B1A11',
-                      marginRight: '6px',
-                    }}
-                  >
-                    Disclaimer:
-                  </span>
-                  <span style={{ fontWeight: 400 }}>{layouts.disclaimer}</span>
-                </div>
-              )}
+                  Disclaimer:
+                </span>
+                <span style={{ fontWeight: 400 }}>{disclaimer}</span>
+              </div>
             </div>
           </div>
         </BlockStack>
@@ -670,146 +684,45 @@ export default function BannerPreview({settings}) {
                     gap: '8px',
                   }}
                 >
-                    {layouts?.text ? (
-                      <div
-                        style={{
-                          color: styles?.textColor || '#000000',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '16px',
-                        }}
-                      >
-                        {layouts.text}
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          color: '#999999',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '16px',
-                          fontStyle: 'italic',
-                          border: '1px solid #CCCCCC',
-                          borderRadius: '4px',
-                          padding: '12px 16px',
-                          backgroundColor: '#FAFAFA',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Enter text
-                      </div>
-                    )}
-                    {layouts?.discountText ? (
-                      <div
-                        style={{
-                          color: styles?.textColor || '#000000',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '55px',
-                          marginTop: '5px',
-                        }}
-                      >
-                        {layouts.discountText}% off
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          color: '#999999',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '55px',
-                          marginTop: '5px',
-                          fontStyle: 'italic',
-                          border: '1px solid #CCCCCC',
-                          borderRadius: '4px',
-                          padding: '12px 16px',
-                          backgroundColor: '#FAFAFA',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          whiteSpace: 'nowrap',
-                          lineHeight: '1.2',
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Discount
-                      </div>
-                    )}
-                    {layouts?.brandName ? (
-                      <div
-                        style={{
-                          color: styles?.textColor || '#000000',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '40px',
-                          marginTop: '50px',
-                        }}
-                      >
-                        {layouts.brandName}
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          color: '#999999',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '40px',
-                          marginTop: '50px',
-                          fontStyle: 'italic',
-                          border: '1px solid #CCCCCC',
-                          borderRadius: '4px',
-                          padding: '12px 16px',
-                          backgroundColor: '#FAFAFA',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          whiteSpace: 'nowrap',
-                          lineHeight: '1.2',
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Brand name
-                      </div>
-                    )}
-                    {layouts?.urlName ? (
-                      <div
-                        style={{
-                          color: styles?.urlColor || '#000000',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '14px',
-                          marginTop: '50px',
-                        }}
-                      >
-                        {layouts.urlName}
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          color: '#999999',
-                          fontFamily: "'Sour Gummy', serif",
-                          fontSize: '14px',
-                          marginTop: '50px',
-                          fontStyle: 'italic',
-                          border: '1px solid #CCCCCC',
-                          borderRadius: '4px',
-                          padding: '12px 16px',
-                          backgroundColor: '#FAFAFA',
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          whiteSpace: 'nowrap',
-                          lineHeight: '1.2',
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        URL name
-                      </div>
-                    )}
+                    <div
+                      style={{
+                        color: styles?.textColor || '#000000',
+                        fontFamily: "'Sour Gummy', serif",
+                        fontSize: '16px',
+                      }}
+                    >
+                      {layout3Text}
+                    </div>
+                    <div
+                      style={{
+                        color: styles?.textColor || '#000000',
+                        fontFamily: "'Sour Gummy', serif",
+                        fontSize: '55px',
+                        marginTop: '5px',
+                      }}
+                    >
+                      {layout3DiscountText}% off
+                    </div>
+                    <div
+                      style={{
+                        color: styles?.textColor || '#000000',
+                        fontFamily: "'Sour Gummy', serif",
+                        fontSize: '40px',
+                        marginTop: '50px',
+                      }}
+                    >
+                      {layout3BrandName}
+                    </div>
+                    <div
+                      style={{
+                        color: styles?.urlColor || '#000000',
+                        fontFamily: "'Sour Gummy', serif",
+                        fontSize: '14px',
+                        marginTop: '50px',
+                      }}
+                    >
+                      {layout3UrlName}
+                    </div>
                 </div>
               </div>
               {/* Right side - with border for image */}
@@ -844,21 +757,18 @@ export default function BannerPreview({settings}) {
                     }}
                   />
                 ) : (
-                  <div
+                  <img
+                    src={LAYOUT_3_IMAGE}
+                    alt="Layout 3"
                     style={{
-                      color: '#999999',
-                      fontFamily: "'Sour Gummy', serif",
-                      fontSize: '16px',
-                      fontStyle: 'italic',
-                      textAlign: 'center',
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
                       position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
+                      top: 0,
+                      left: 0,
                     }}
-                  >
-                    Add Image
-                  </div>
+                  />
                 )}
               </div>
             </div>
@@ -916,18 +826,20 @@ export default function BannerPreview({settings}) {
                 style={{
                   width: '100%',
                   maxWidth: '880px',
-                  minHeight: '360px',
-                  backgroundColor: '#F9FAFB',
                   borderRadius: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px dashed #CCCCCC',
+                  overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
-                <Text as="p" variant="bodyMd" color="subdued">
-                  Preview image will appear here
-                </Text>
+                <img
+                  src={LAYOUT_4_IMAGE}
+                  alt="Layout 4 Preview"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                  }}
+                />
               </div>
             )}
           </div>

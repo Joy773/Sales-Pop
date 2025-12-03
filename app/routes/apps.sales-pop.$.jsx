@@ -43,6 +43,18 @@ function verifyAppProxySignature(queryParams, secretKey) {
  * - /apps/sales-pop/styles - Fetch styles configuration
  * - /apps/sales-pop/data - Fetch combined styles + orders (default)
  */
+export async function options() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 export async function loader({ request, params }) {
   try {
     const url = new URL(request.url);

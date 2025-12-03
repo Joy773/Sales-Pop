@@ -332,7 +332,7 @@
     const quantityRowStyles = {
       display: 'flex',
       alignItems: 'center',
-      gap: '6px',
+      gap: '2px',
       color: '#2c6ecb',
       fontSize: `${Math.max((settings.fontSize || 14) - 1, 12)}px`,
       fontWeight: '600',

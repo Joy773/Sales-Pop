@@ -155,7 +155,6 @@ export default function LowAlertTabSection({ settings, onSettingsChange }) {
               multiline
               autoComplete="off"
               placeholder="Enter custom message"
-              helpText="Use {stock} for inventory count"
             />
             <TextField
               label="Low stock threshold"

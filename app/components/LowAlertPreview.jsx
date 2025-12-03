@@ -150,7 +150,7 @@ export default function LowAlertPreview({ settings }) {
   const quantityRowStyles = {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '2px',
     color: '#2c6ecb',
     fontSize: `${Math.max(fontSize - 1, 12)}px`,
     fontWeight: 600,
@@ -246,7 +246,7 @@ export default function LowAlertPreview({ settings }) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '6px',
+                gap: '2px',
                 fontFamily,
                 paddingRight: showCloseButton ? '32px' : '0',
               }}
