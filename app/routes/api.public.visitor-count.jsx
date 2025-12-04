@@ -6,8 +6,9 @@ function buildCorsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
     'Access-Control-Max-Age': '86400',
+    'Access-Control-Expose-Headers': 'Content-Length, Content-Type',
   };
 }
 
@@ -19,6 +20,14 @@ export async function options() {
 }
 
 export async function loader({ request }) {
+  // Handle OPTIONS preflight requests
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: buildCorsHeaders(),
+    });
+  }
+
   try {
     const url = new URL(request.url);
     let shop = url.searchParams.get('shop');
@@ -60,7 +69,22 @@ export async function loader({ request }) {
       Number(settings?.lookbackMinutes) ||
       30;
 
+    console.log('[Visitor Count Public API] Fetching summary:', {
+      shop,
+      intervalMinutes,
+      settingsKeys: Object.keys(settings || {}),
+    });
+
     const visitor = await getVisitorCountSummary(shop, { intervalMinutes });
+
+    console.log('[Visitor Count Public API] Summary result:', {
+      shop,
+      intervalMinutes,
+      count: visitor.count,
+      uniqueVisitors: visitor.uniqueVisitors,
+      totalEvents: visitor.totalEvents,
+      lastEventAt: visitor.lastEventAt?.toISOString() || 'none',
+    });
 
     return json(
       {

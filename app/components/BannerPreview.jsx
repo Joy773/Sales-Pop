@@ -465,25 +465,25 @@ export default function BannerPreview({settings}) {
                   {heading}
                 </div>
               )}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '145px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  textAlign: 'center',
-                  fontFamily: 'serif',
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '145px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: 'serif',
                   color: layouts?.discountColor || '#000000',
-                  fontSize: '72px',
-                  fontWeight: 700,
-                  fontStyle: 'italic',
-                  lineHeight: 1,
-                  width: '100%',
-                  padding: '0 24px',
-                }}
-              >
+                    fontSize: '72px',
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    lineHeight: 1,
+                    width: '100%',
+                    padding: '0 24px',
+                  }}
+                >
                 {discountPercentage}
-              </div>
+                </div>
               {description && (
                 <div
                   style={{
@@ -506,62 +506,62 @@ export default function BannerPreview({settings}) {
                   {description}
                 </div>
               )}
-              <button
-                type="button"
-                style={{
-                  position: 'absolute',
-                  top: '340px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  backgroundColor: layouts?.buttonColor || '#D4A574',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '14px 24px',
-                  fontFamily: 'sans-serif',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {buttonText}
-                <span style={{ fontSize: '18px' }}>→</span>
-              </button>
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '40px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  textAlign: 'center',
-                  fontFamily: "Georgia, 'Times New Roman', serif",
-                  color: layouts?.disclaimerColor || '#2B1A11',
-                  fontSize: '14px',
-                  lineHeight: 1.4,
-                  width: '90%',
-                  maxWidth: '640px',
-                  opacity: 0.9,
-                  wordBreak: 'break-word',
-                }}
-              >
-                <span
+                <button
+                  type="button"
                   style={{
+                    position: 'absolute',
+                    top: '340px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: layouts?.buttonColor || '#D4A574',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '14px 24px',
+                    fontFamily: 'sans-serif',
+                    fontSize: '16px',
                     fontWeight: 600,
-                    color: layouts?.disclaimerColor || '#2B1A11',
-                    marginRight: '6px',
+                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  Disclaimer:
-                </span>
+                {buttonText}
+                  <span style={{ fontSize: '18px' }}>→</span>
+                </button>
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '40px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    textAlign: 'center',
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    color: layouts?.disclaimerColor || '#2B1A11',
+                    fontSize: '14px',
+                    lineHeight: 1.4,
+                    width: '90%',
+                    maxWidth: '640px',
+                    opacity: 0.9,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color: layouts?.disclaimerColor || '#2B1A11',
+                      marginRight: '6px',
+                    }}
+                  >
+                    Disclaimer:
+                  </span>
                 <span style={{ fontWeight: 400 }}>{disclaimer}</span>
-              </div>
+                </div>
             </div>
           </div>
         </BlockStack>
@@ -684,45 +684,45 @@ export default function BannerPreview({settings}) {
                     gap: '8px',
                   }}
                 >
-                    <div
-                      style={{
-                        color: styles?.textColor || '#000000',
-                        fontFamily: "'Sour Gummy', serif",
-                        fontSize: '16px',
-                      }}
-                    >
+                      <div
+                        style={{
+                          color: styles?.textColor || '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '16px',
+                        }}
+                      >
                       {layout3Text}
-                    </div>
-                    <div
-                      style={{
-                        color: styles?.textColor || '#000000',
-                        fontFamily: "'Sour Gummy', serif",
-                        fontSize: '55px',
-                        marginTop: '5px',
-                      }}
-                    >
+                      </div>
+                      <div
+                        style={{
+                          color: styles?.textColor || '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '55px',
+                          marginTop: '5px',
+                        }}
+                      >
                       {layout3DiscountText}% off
-                    </div>
-                    <div
-                      style={{
-                        color: styles?.textColor || '#000000',
-                        fontFamily: "'Sour Gummy', serif",
-                        fontSize: '40px',
-                        marginTop: '50px',
-                      }}
-                    >
+                      </div>
+                      <div
+                        style={{
+                          color: styles?.textColor || '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '40px',
+                          marginTop: '50px',
+                        }}
+                      >
                       {layout3BrandName}
-                    </div>
-                    <div
-                      style={{
-                        color: styles?.urlColor || '#000000',
-                        fontFamily: "'Sour Gummy', serif",
-                        fontSize: '14px',
-                        marginTop: '50px',
-                      }}
-                    >
+                      </div>
+                      <div
+                        style={{
+                          color: styles?.urlColor || '#000000',
+                          fontFamily: "'Sour Gummy', serif",
+                          fontSize: '14px',
+                          marginTop: '50px',
+                        }}
+                      >
                       {layout3UrlName}
-                    </div>
+                      </div>
                 </div>
               </div>
               {/* Right side - with border for image */}

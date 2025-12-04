@@ -212,7 +212,16 @@ export default function VisitorCount() {
       >
         <div style={{maxWidth:'1200px', margin:'0 auto'}}>
         <Grid>
-          {/* Preview Section - Left Side (60%) */}
+          {/* Settings and Styles Tabs - Left Side (40%) */}
+          <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 4, lg: 4, xl: 4 }}>
+            <VisitorsTabSection 
+              onSettingsChange={handleSettingsChange} 
+              onReset={resetRef} 
+              initialSettings={lastSavedSettings}
+            />
+          </Grid.Cell>
+
+          {/* Preview Section - Right Side (60%) */}
           <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 8, lg: 8, xl: 8 }}>
             <div style={{
               position: 'sticky',
@@ -221,15 +230,6 @@ export default function VisitorCount() {
             }}>
               <VisitorCountPreview settings={settings} />
             </div>
-          </Grid.Cell>
-
-          {/* Settings and Styles Tabs - Right Side (40%) */}
-          <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 4, lg: 4, xl: 4 }}>
-            <VisitorsTabSection 
-              onSettingsChange={handleSettingsChange} 
-              onReset={resetRef} 
-              initialSettings={lastSavedSettings}
-            />
           </Grid.Cell>
         </Grid>
       </div>

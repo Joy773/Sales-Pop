@@ -60,12 +60,17 @@ export async function saveVisitorCountSettings(shop, settings) {
     
     console.log(`[Visitor Settings Repo] Attempting to save/update document for shop: "${normalizedShop}"`);
     
+    // Check if document exists to preserve enabled state
+    const existing = await collection.findOne({ shop: normalizedShop });
+    const currentEnabled = existing?.enabled !== undefined ? existing.enabled : true;
+    
     // Use replaceOne with upsert for more reliable behavior
     const updateResult = await collection.replaceOne(
       { shop: normalizedShop },
       {
         shop: normalizedShop,
         settings,
+        enabled: currentEnabled, // Preserve existing enabled state, default to true
         updatedAt: new Date()
       },
       {

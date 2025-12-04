@@ -2,7 +2,7 @@
 
 client_id = "8166c3886a93c62bdde542f27c050e35"
 name = "salespop"
-application_url = "https://example.com"
+application_url = "https://platforms-magical-postage-coaches.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,8 +16,7 @@ api_version = "2026-01"
 scopes = "write_products,read_orders,write_app_proxy"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
-
+redirect_urls = [ "https://platforms-magical-postage-coaches.trycloudflare.com" ]
 
 [app_proxy]
 url = "/apps/sales-pop"
